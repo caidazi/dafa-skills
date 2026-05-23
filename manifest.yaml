@@ -1,0 +1,38 @@
+bundle: caidazi-skills
+version: 0.1.0
+env:
+  primary_api_key: CAIDAZI_API_KEY
+  compatible_api_keys:
+    - CAIZI_API_KEY
+skills:
+  included:
+    - caidazi-market-pulse
+    - caidazi-asset-research
+    - caidazi-stock-screener
+    - caidazi-user-assets
+    - caidazi-finance-search
+    - caidazi-fund-etf-research
+    - caidazi-macro-research
+    - caidazi-portfolio-review
+required_mcp:
+  included:
+    - extract_assets
+    - get_hot_report
+    - get_real_time_market_summary
+    - get_market_analysis
+    - get_macro_analysis
+    - get_asset_overview
+    - investment_search_pro
+    - compare_assets
+    - screen_stocks
+    - get_caidazi_user_watchlist
+    - get_caidazi_positions_summary
+    - get_caidazi_portfolio_snapshot
+    - get_etf_constituents
+    - get_index_related_etfs
+    - get_stock_belongings
+blocked_surface:
+  - raw database access
+  - internal account tools
+  - internal monitor or subscription tools
+  - local file or UI-only tools
