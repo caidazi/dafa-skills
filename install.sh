@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_RAW="${CAIDAZI_REPO_URL:-https://raw.githubusercontent.com/zhicepilot/caidazi-skills/main}"
+REPO_RAW="${CAIDAZI_REPO_URL:-https://raw.githubusercontent.com/caidazi/dafa-skills/main}"
 MCP_SERVER_URL="https://mcp.zhicepilot.com"
 MCP_SERVER_NAME="caidazi"
 
