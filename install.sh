@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_RAW="${CAIDAZI_REPO_URL:-https://raw.githubusercontent.com/caidazi/dafa-skills/main}"
-MCP_SERVER_URL="https://mcp.zhicepilot.com"
+REPO_URL="${CAIDAZI_REPO_URL:-https://github.com/caidazi/dafa-skills.git}"
+MCP_SERVER_URL="http://127.0.0.1:5011"
 MCP_SERVER_NAME="caidazi"
 
 # ── colors ──
@@ -18,6 +18,7 @@ error() { printf "${RED}[error]${NC} %s\n" "$*" >&2; exit 1; }
 # ── args ──
 API_KEY=""
 PLATFORM=""
+SCOPE="global"
 UPDATE_MODE=false
 
 usage() {
@@ -27,12 +28,13 @@ Usage: install.sh [options]
 Options:
   --key KEY         API key (required)
   --platform PLAT   Target platform: claude-code (default: auto-detect)
+  --scope SCOPE     Installation scope: global (default) or project
   --update          Update existing installation
   --help            Show this help
 
 Examples:
-  curl -fsSL https://raw.githubusercontent.com/zhicepilot/caidazi-skills/main/install.sh | bash -s -- --key $CAIDAZI_API_KEY
-  ./install.sh --key $CAIDAZI_API_KEY --platform claude-code
+  ./install.sh --key $CAIDAZI_API_KEY
+  ./install.sh --key $CAIDAZI_API_KEY --scope project
 EOF
   exit 0
 }
@@ -41,11 +43,16 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --key)        API_KEY="$2"; shift 2 ;;
     --platform)   PLATFORM="$2"; shift 2 ;;
+    --scope)      SCOPE="$2"; shift 2 ;;
     --update)     UPDATE_MODE=true; shift ;;
     --help|-h)    usage ;;
     *)            error "Unknown option: $1" ;;
   esac
 done
+
+if [[ "$SCOPE" != "global" && "$SCOPE" != "project" ]]; then
+  error "Invalid scope '$SCOPE'. Use 'global' or 'project'."
+fi
 
 [[ -z "$API_KEY" ]] && error "--key is required. Pass --key <YOUR_API_KEY>"
 
@@ -73,15 +80,22 @@ if [[ "$PLATFORM" != "claude-code" ]]; then
   error "Platform '$PLATFORM' is not supported yet. Currently only 'claude-code' is available."
 fi
 
-# ── fetch manifest ──
-info "Fetching manifest..."
-MANIFEST=$(curl -fsSL "${REPO_RAW}/manifest.yaml") || error "Failed to fetch manifest.yaml"
+# ── clone repo to temp dir ──
+info "Cloning skills repository..."
+TMP_DIR=$(mktemp -d)
+trap 'rm -rf "$TMP_DIR"' EXIT
 
-# parse version
+git clone --depth 1 "$REPO_URL" "$TMP_DIR/repo" >/dev/null 2>&1 || error "Failed to clone $REPO_URL"
+
+# ── parse manifest ──
+MANIFEST_FILE="$TMP_DIR/repo/manifest.yaml"
+[[ -f "$MANIFEST_FILE" ]] || error "manifest.yaml not found in repo"
+
+MANIFEST=$(cat "$MANIFEST_FILE")
+
 VERSION=$(echo "$MANIFEST" | grep '^version:' | head -1 | awk '{print $2}')
 [[ -z "$VERSION" ]] && error "Could not parse version from manifest"
 
-# parse skill list (between "skills:" and "required_mcp:")
 SKILLS=()
 parsing=false
 while IFS= read -r line; do
@@ -90,7 +104,6 @@ while IFS= read -r line; do
     "required_mcp:"*) break ;;
   esac
   if $parsing; then
-    # match lines like "    - caidazi-xxx"
     stripped=$(echo "$line" | sed -n 's/^ *- \(.*\)/\1/p')
     if [[ -n "$stripped" && "$stripped" != "included" ]]; then
       SKILLS+=("$stripped")
@@ -105,17 +118,18 @@ fi
 info "Version: $VERSION"
 info "Skills: ${#SKILLS[@]}"
 
-# ── fetch skills ──
+# ── read skills from local clone ──
 SKILL_CONTENT=""
 for skill in "${SKILLS[@]}"; do
-  info "  Fetching ${skill}..."
-  RAW=$(curl -fsSL "${REPO_RAW}/${skill}/SKILL.md") || error "Failed to fetch ${skill}/SKILL.md"
+  SKILL_FILE="$TMP_DIR/repo/${skill}/SKILL.md"
+  [[ -f "$SKILL_FILE" ]] || error "Skill file not found: ${skill}/SKILL.md"
+  info "  Loading ${skill}..."
+
+  RAW=$(cat "$SKILL_FILE")
 
   # strip frontmatter (--- delimited block at the top)
   BODY=$(echo "$RAW" | awk '/^---$/{n++; next} n>=2')
 
-  # extract skill name from original content for section header
-  # use the directory name as fallback
   HEADER="# ${skill}"
 
   SKILL_CONTENT="${SKILL_CONTENT}
@@ -133,9 +147,20 @@ CLAUDE_BLOCK="${BEGIN_MARK}
 # 财搭子 Skills
 ${SKILL_CONTENT}${END_MARK}"
 
-# ── write CLAUDE.md ──
-CLAUDE_FILE="CLAUDE.md"
+# ── determine target paths ──
+if [[ "$SCOPE" == "global" ]]; then
+  CLAUDE_FILE="$HOME/.claude/CLAUDE.md"
+  MCP_SCOPE="user"
+  mkdir -p "$HOME/.claude"
+  info "Installing globally to ${CLAUDE_FILE}"
+else
+  CLAUDE_FILE="CLAUDE.md"
+  MCP_SCOPE="project"
+  mkdir -p .claude
+  info "Installing to current project"
+fi
 
+# ── write CLAUDE.md ──
 if [[ -f "$CLAUDE_FILE" ]]; then
   # check for existing installation
   if grep -q '<!-- caidazi-skills' "$CLAUDE_FILE" 2>/dev/null; then
@@ -168,81 +193,34 @@ fi
 
 info "Skills written to ${CLAUDE_FILE}"
 
-# ── write MCP config ──
-SETTINGS_FILE=".claude/settings.json"
-mkdir -p .claude
+# ── configure MCP server ──
 
-MCP_ENTRY="{\"command\":\"npx\",\"args\":[\"-y\",\"supergateway\",\"--streamableHttp\",\"${MCP_SERVER_URL}\"],\"env\":{\"CAIDAZI_API_KEY\":\"${API_KEY}\"}}"
-
-if [[ -f "$SETTINGS_FILE" ]]; then
-  # merge into existing settings
-  info "Merging MCP config into ${SETTINGS_FILE}..."
-
-  # use python if available for reliable JSON merge, otherwise use sed
-  if command -v python3 &>/dev/null; then
-    python3 -c "
-import json, sys
-
-with open('${SETTINGS_FILE}', 'r') as f:
-    settings = json.load(f)
-
-mcp = json.loads('${MCP_ENTRY}')
-if 'mcpServers' not in settings:
-    settings['mcpServers'] = {}
-settings['mcpServers']['${MCP_SERVER_NAME}'] = mcp
-
-with open('${SETTINGS_FILE}', 'w') as f:
-    json.dump(settings, f, indent=2)
-    f.write('\n')
-"
-  else
-    # fallback: basic sed-based approach for simple cases
-    warn "python3 not found, using basic JSON merge. Manual verification recommended."
-
-    # check if mcpServers already exists
-    if grep -q '"mcpServers"' "$SETTINGS_FILE"; then
-      # check if caidazi already configured
-      if grep -q "\"${MCP_SERVER_NAME}\"" "$SETTINGS_FILE"; then
-        info "MCP server '${MCP_SERVER_NAME}' already in settings, updating..."
-        # This is a best-effort replacement without python
-        TMP=$(mktemp)
-        sed "/\"${MCP_SERVER_NAME}\"/,/}/c\\    \"${MCP_SERVER_NAME}\": $(echo "$MCP_ENTRY" | tr '\n' ' ')" "$SETTINGS_FILE" > "$TMP"
-        mv "$TMP" "$SETTINGS_FILE"
-      else
-        # append to mcpServers
-        TMP=$(mktemp)
-        sed "s/\"mcpServers\": {/\"mcpServers\": {\n    \"${MCP_SERVER_NAME}\": $(echo "$MCP_ENTRY" | tr '\n' ' '),/" "$SETTINGS_FILE" > "$TMP"
-        mv "$TMP" "$SETTINGS_FILE"
-      fi
-    else
-      # add mcpServers section
-      TMP=$(mktemp)
-      sed "s/^{/{\n  \"mcpServers\": {\n    \"${MCP_SERVER_NAME}\": $(echo "$MCP_ENTRY" | tr '\n' ' ')\n  },/" "$SETTINGS_FILE" > "$TMP"
-      mv "$TMP" "$SETTINGS_FILE"
-    fi
+if command -v claude &>/dev/null; then
+  # Remove existing config if present
+  if claude mcp list 2>/dev/null | grep -q "^${MCP_SERVER_NAME}:"; then
+    info "Removing existing ${MCP_SERVER_NAME} MCP config..."
+    claude mcp remove "${MCP_SERVER_NAME}" 2>/dev/null || true
   fi
-else
-  info "Creating ${SETTINGS_FILE}..."
-  python3 -c "
-import json
-settings = {
-    'mcpServers': {
-        '${MCP_SERVER_NAME}': json.loads('${MCP_ENTRY}')
-    }
-}
-with open('${SETTINGS_FILE}', 'w') as f:
-    json.dump(settings, f, indent=2)
-    f.write('\n')
-"
-fi
 
-info "MCP config written to ${SETTINGS_FILE}"
+  info "Adding ${MCP_SERVER_NAME} MCP server (${MCP_SCOPE} scope)..."
+  claude mcp add --scope "${MCP_SCOPE}" \
+    "${MCP_SERVER_NAME}" \
+    -- npx -y supergateway \
+    --streamableHttp "${MCP_SERVER_URL}/mcp" \
+    --header "Authorization: Bearer ${API_KEY}" \
+    2>/dev/null || warn "Failed to add MCP server via 'claude mcp add'. You may need to add it manually."
+else
+  warn "'claude' CLI not found. Skipping MCP auto-configuration."
+  echo "  To add manually, run:"
+  echo "    claude mcp add --scope ${MCP_SCOPE} ${MCP_SERVER_NAME} -- npx -y supergateway --streamableHttp ${MCP_SERVER_URL}/mcp --header 'Authorization: Bearer ${API_KEY}'"
+fi
 
 # ── done ──
 echo ""
 info "Installation complete!"
 info "  Version:  ${VERSION}"
 info "  Platform: ${PLATFORM}"
+info "  Scope:    ${SCOPE}"
 info "  Skills:   ${#SKILLS[@]}"
 info "  MCP:      ${MCP_SERVER_NAME} -> ${MCP_SERVER_URL}"
 echo ""
