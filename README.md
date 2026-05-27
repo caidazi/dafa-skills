@@ -1,32 +1,32 @@
-# 财搭子外部 Skills
 
-这个目录是面向 Codex、Claude Code、OpenClaw 等通用 Agent 的公开 skill 包。
+### 前置条件：获取 API Key
 
-这些 skill 刻意保持轻量：只告诉 Agent 什么时候调用财搭子 MCP、遇到 API Key 或工具不可用问题怎么恢复、结果应该如何组织。投资逻辑、数据拼接、候选生成、打分和私有账户访问都留在服务端 MCP wrapper 内部。
-
-统一使用 `CAIDAZI_API_KEY` 作为环境变量。客户端可以为了兼容识别 `CAIZI_API_KEY`，但新增文档和提示词都应优先使用 `CAIDAZI_API_KEY`。
-
-## 获取 API Key
-
-使用这些 skill 前，需要先在财搭子 App 中领取 API Key。
+需要先在财搭子 App 中领取 API Key。
 
 1. 打开财搭子 App。
 2. 进入大发 agent 页面。
 3. 点击左上角的 skill icon。
 4. 进入 Skills 页面，领取或复制 API Key。
-5. 在启动 Codex、Claude Code、OpenClaw 或其他外部 Agent 前，把这个 key 设置为 `CAIDAZI_API_KEY`。
+5. 在启动你的 AI Agent 前，把这个 key 设置为 `CAIDAZI_API_KEY`。
 
-请保护好 API Key。安装流程可以展示脱敏后的 key 用于确认，但不要把完整 key 粘贴到聊天、日志或公开文件里。
+### 安装步骤
+安装财搭子（Caidazi）skills 和 MCP。
 
-已交付能力：
+数据源
+- Repo: https://github.com/caidazi/dafa-skills.git
+- MCP Endpoint: http://101.126.22.17:5011/mcp
+- MCP Auth: Bearer $CAIDAZI_API_KEY
 
-- `caidazi-market-pulse`
-- `caidazi-asset-research`
-- `caidazi-stock-screener`
-- `caidazi-user-assets`
-- `caidazi-finance-search`
-- `caidazi-fund-etf-research`
-- `caidazi-macro-research`
-- `caidazi-portfolio-review`
-
-公开 skill 不得包含内部表名、原始查询指令、内部账户工具名或具体打分规则。
+安装要求
+1. 拉取仓库到临时目录，读取 manifest.yaml 获取 skill 列表。
+2. 安装 Skills 到你所在环境的正确 skills 目录：
+   - 每个 skill 必须是独立子目录
+   - 必须保留 SKILL.md 的完整 frontmatter，严禁删除
+   - 如环境支持 user-invocable，评估是否添加该标记
+3. 配置 MCP Server：
+   - Name: caidazi
+   - Transport: Streamable HTTP
+   - URL: http://101.126.22.17:5011/mcp
+   - Headers: Authorization: Bearer $CAIDAZI_API_KEY
+4. 验证：列出已安装的财搭子 skills，确认能被调用。
+5. 报告安装路径、MCP 配置位置、调用方式。
