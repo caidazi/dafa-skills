@@ -3,8 +3,6 @@ bundle: caidazi-skills
 version: 0.1.0
 env:
   primary_api_key: CAIDAZI_API_KEY
-  compatible_api_keys:
-    - CAIZI_API_KEY
 mcp:
   server_name: caidazi
   transport: streamable-http

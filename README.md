@@ -4,7 +4,7 @@
 
 这些 skill 只负责告诉 Agent 什么时候调用财搭子 MCP、如何处理 API Key/工具不可用、结果如何组织。投资逻辑、数据拼接、候选生成、打分和私有账户访问都留在服务端 MCP wrapper 内部。
 
-统一使用 `CAIDAZI_API_KEY`。可兼容 `CAIZI_API_KEY`，但新配置请优先使用 `CAIDAZI_API_KEY`。
+统一使用 `CAIDAZI_API_KEY`。
 
 ## Agent 安装契约
 
@@ -48,7 +48,7 @@ Repo: https://github.com/caidazi/dafa-skills.git
 要求：
 1. 安装 manifest.yaml 中列出的 skills；如果当前 Agent 不支持 skills，请进入 MCP-only 模式并说明限制。
 2. 配置 caidazi MCP，endpoint、transport、auth 都从 manifest.yaml 读取。
-3. 检查 CAIDAZI_API_KEY，兼容 CAIZI_API_KEY。
+3. 检查 CAIDAZI_API_KEY。
 4. 如果没有 key，不要生成 key，不要让我把完整 key 发到聊天里。请告诉我到财搭子 App -> 大发 agent 页面 -> 左上角 skill icon -> Skills 页面领取，然后用当前 Agent 支持的安全方式设置为 CAIDAZI_API_KEY。
 5. 如果 HTTPS endpoint 还是占位符，请先让我提供官方 HTTPS endpoint，不要自动改用 HTTP 测试端点。
 6. 验证时只调用 smoke_safe_tools，不要调用我的自选、持仓或组合工具。
