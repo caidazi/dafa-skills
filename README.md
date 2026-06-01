@@ -1,124 +1,107 @@
 # 财搭子外部 Skills
 
-这个仓库是面向 Claude Code、Claude Desktop、Codex、OpenClaw、Cursor 等通用 AI Agent 的公开 skill 包。
+面向 Claude Code、Claude Desktop、Codex、OpenClaw、Cursor 等通用 AI Agent 的公开 skill 包。
 
-这些 skill 刻意保持轻量：只告诉 Agent 什么时候调用财搭子 MCP、遇到 API Key 或工具不可用问题怎么恢复、结果应该如何组织。投资逻辑、数据拼接、候选生成、打分和私有账户访问都留在服务端 MCP wrapper 内部。
+这些 skill 只负责告诉 Agent 什么时候调用财搭子 MCP、如何处理 API Key/工具不可用、结果如何组织。投资逻辑、数据拼接、候选生成、打分和私有账户访问都留在服务端 MCP wrapper 内部。
 
-统一使用 `CAIDAZI_API_KEY` 作为环境变量。客户端可以为了兼容识别 `CAIZI_API_KEY`，但新增文档和提示词都应优先使用 `CAIDAZI_API_KEY`。
+统一使用 `CAIDAZI_API_KEY`。
 
-## 获取 API Key
+## Agent 安装契约
 
-使用这些 skill 前，需要先在财搭子 App 中领取 API Key。
+如果你是正在安装本仓库的 AI Agent，请以 `manifest.yaml` 为真源，不要写死某个客户端的旧配置路径。
+
+1. 拉取 `https://github.com/caidazi/dafa-skills.git`，读取 `manifest.yaml`。
+2. 安装 `skills.included` 中的 skill 目录；如果当前 Agent 不支持 skills，进入 MCP-only 模式并说明限制。
+3. 配置 MCP：
+   - name: `mcp.server_name`
+   - transport: 当前 Agent 对 Streamable HTTP 的等价写法
+   - endpoint: 优先使用 `mcp.production_endpoint` / `mcp.endpoint`
+   - auth: `Authorization: Bearer {CAIDAZI_API_KEY}`，key 必须来自 secret/env 引用
+4. 处理 API Key：
+   - 不要生成 key，不要要求用户把完整 key 发到聊天里。
+   - 不要通过 `printenv`、`echo`、日志、截图或最终报告回显完整 key。
+   - 不要把 key 写入仓库、README、issue、PR 或普通项目配置文件。
+   - 如果缺 key，引导用户到财搭子 App 领取，并用 secret store、MCP 配置 UI、本机环境变量或交互式 secret 输入设置。
+5. 处理 endpoint 安全：
+   - 如果 HTTPS endpoint 仍是占位符，暂停并要求用户或项目方提供官方 HTTPS endpoint。
+   - 不要自动降级到 `mcp.test_endpoint`。
+   - 不要在公网向 HTTP endpoint 发送 Bearer key；只有用户明确确认可信测试环境时才可使用 HTTP 测试端点。
+6. 验证：
+   - 先做本地验证：manifest 可解析、skills 已索引或 MCP-only、MCP 配置已写入或生成草案。
+   - 网络 smoke test 只能使用 `required_mcp.smoke_safe_tools`。
+   - 禁止用自选、持仓、组合工具做安装验证；这些账户工具只在用户主动询问个人资产时使用。
+7. 安装后向用户说明能做什么，区分公开能力和账户能力，并询问用户想先做哪类任务。
+
+安装报告请保持简短，包含：skills 模式、MCP 配置状态、API Key 状态（不回显 key）、传输安全、公开工具可见性、smoke test 结果或跳过原因。
+
+## 用户快速开始
+
+复制下面这段发给你的 AI Agent：
+
+```text
+请为我安装财搭子（Caidazi）Skills 和 MCP。
+
+Repo: https://github.com/caidazi/dafa-skills.git
+
+请读取 README.md 和 manifest.yaml，以 manifest.yaml 为安装真源。
+
+要求：
+1. 安装 manifest.yaml 中列出的 skills；如果当前 Agent 不支持 skills，请进入 MCP-only 模式并说明限制。
+2. 配置 caidazi MCP，endpoint、transport、auth 都从 manifest.yaml 读取。
+3. 检查 CAIDAZI_API_KEY。
+4. 如果没有 key，不要生成 key，不要让我把完整 key 发到聊天里。请告诉我到财搭子 App -> 大发 agent 页面 -> 左上角 skill icon -> Skills 页面领取，然后用当前 Agent 支持的安全方式设置为 CAIDAZI_API_KEY。
+5. 如果 HTTPS endpoint 还是占位符，请先让我提供官方 HTTPS endpoint，不要自动改用 HTTP 测试端点。
+6. 验证时只调用 smoke_safe_tools，不要调用我的自选、持仓或组合工具。
+7. 安装完成后，请简短说明财搭子能做什么，并问我想先做哪类任务。
+```
+
+## API Key
+
+在财搭子 App 中领取：
 
 1. 打开财搭子 App。
 2. 进入大发 agent 页面。
 3. 点击左上角的 skill icon。
 4. 进入 Skills 页面，领取或复制 API Key。
-5. 在启动你的 AI Agent 前，把这个 key 设置为 `CAIDAZI_API_KEY`。
+5. 用安全方式设置为 `CAIDAZI_API_KEY`。
 
-请保护好 API Key。不要把完整 key 粘贴到聊天、日志或公开文件里。
+不要把完整 API Key 粘贴到聊天、日志或公开文件里。Agent 只能报告 key 是否存在、是否可用，不应回显完整 key。
 
-## 安装方式
+## Endpoint 安全
 
-不需要脚本。根据你使用的 AI Agent，复制对应段落直接发送给它。
+`manifest.yaml` 当前默认使用 HTTPS 生产 endpoint 占位符，并保留一个 HTTP 测试端点。
 
-### Claude Code CLI
+正式公开发布前，必须把 `https://<caidazi-https-mcp-endpoint>/mcp` 替换为官方 HTTPS endpoint。HTTP 测试端点只能在用户明确确认可信测试环境时使用，不能作为默认带 key 连接目标。
 
-复制以下内容发给 Claude Code：
+## 能做什么
 
-```text
-请为我安装财搭子（Caidazi）skills 和 MCP。
+公开能力：
 
-数据源
-- Repo: https://github.com/caidazi/dafa-skills.git
-- MCP Endpoint: http://101.126.22.17:5011/mcp
-- MCP Auth: Bearer $CAIDAZI_API_KEY
+- 市场脉搏：热点、大盘走势、板块概览、盘前盘中盘后摘要。
+- 单标的研究：股票、ETF、基金、指数的快速研究和原因分析。
+- 多标的比较：比较多个股票、ETF、基金或指数。
+- 自然语言选股：用自然语言筛选候选股票或 ETF。
+- 财经搜索：搜索资讯、公告、研报、政策和事件进展。
+- 基金/ETF 研究：查询 ETF 持仓、指数相关 ETF、基金和 ETF 对比。
+- 宏观研究：分析政策、利率、通胀、汇率和大类资产影响。
 
-安装要求
-1. 拉取仓库到临时目录，读取 manifest.yaml 获取 skill 列表。
-2. 安装 Skills 到 Claude Code 的正确 skills 目录：
-   - 每个 skill 为独立子目录
-   - 保留 SKILL.md 的完整 frontmatter（name、description 等），严禁删除
-   - 如支持 user-invocable，评估是否添加该标记
-3. 配置 MCP Server：
-   - 执行：claude mcp add --transport http caidazi http://101.126.22.17:5011/mcp --header "Authorization: Bearer $CAIDAZI_API_KEY"
-   - Claude Code CLI 原生支持 streamableHttp，不要通过 supergateway 等工具包装
-4. 验证：执行 claude mcp list 确认 caidazi 已连接，并列出可用的财搭子 tools。
-5. 报告安装路径、MCP 配置位置、调用方式。
-```
+账户能力需要 API Key 已绑定财搭子账户，且只能在用户主动询问个人资产时使用：
 
-### Claude Desktop (macOS/Windows App)
+- 用户资产上下文：查询并使用财搭子自选、持仓和组合快照。
+- 组合复盘：基于财搭子自选、持仓或组合快照做轻量复盘。
 
-Claude Desktop 目前主要通过 MCP 扩展能力，自定义 skills 的文件系统支持有限。
+样例 query：
 
-在 Claude Desktop 的 **Settings → Developer → Edit Config** 中，添加以下 MCP 配置：
+- 今天 A 股市场热点是什么？
+- 帮我看下宁德时代最近的核心矛盾。
+- 比亚迪和宁德时代谁更值得跟踪？
+- 找出最近资金强、估值不贵的新能源股票。
+- 纳指 ETF 和恒生科技 ETF 怎么选？
+- 我的自选里今天哪些最值得关注？（会读取账户资产，需你主动发起）
 
-```json
-{
-  "mcpServers": {
-    "caidazi": {
-      "transport": "streamable-http",
-      "url": "http://101.126.22.17:5011/mcp",
-      "headers": {
-        "Authorization": "Bearer <你的 CAIDAZI_API_KEY>"
-      }
-    }
-  }
-}
-```
+## 边界
 
-保存后重启 Claude Desktop，在侧边栏的 MCP 工具列表中确认 `caidazi` 已加载。
-
-### Cursor
-
-在 Cursor 的 **Settings → MCP** 中添加 server：
-
-- **Name**: `caidazi`
-- **Transport**: `Streamable HTTP`（或 HTTP/SSE，视 Cursor 版本而定）
-- **URL**: `http://101.126.22.17:5011/mcp`
-- **Headers**: `Authorization: Bearer <你的 CAIDAZI_API_KEY>`
-
-如果 Cursor 支持项目级 `.cursor/mcp.json`，也可以写入该文件。配置完成后在 Composer 中确认 tools 可用。
-
-### 其他 Agent（Codex、OpenClaw 等）
-
-复制以下内容发送给你的 Agent：
-
-```text
-请为我安装财搭子（Caidazi）skills 和 MCP。
-
-数据源
-- Repo: https://github.com/caidazi/dafa-skills.git
-- MCP Endpoint: http://101.126.22.17:5011/mcp
-- MCP Auth: Bearer $CAIDAZI_API_KEY
-
-安装要求
-1. 拉取仓库到临时目录，读取 manifest.yaml 获取 skill 列表。
-2. 安装 Skills 到你所在环境的正确 skills 目录：
-   - 每个 skill 为独立子目录
-   - 保留 SKILL.md 的完整 frontmatter（name、description 等），严禁删除
-   - 如支持 user-invocable，评估是否添加该标记
-3. 配置 MCP Server：
-   - Name: caidazi
-   - Transport: streamableHttp
-   - URL: http://101.126.22.17:5011/mcp
-   - Headers: Authorization: Bearer $CAIDAZI_API_KEY
-   - 优先使用环境原生的 streamableHttp 支持，不要额外包装
-4. 验证：确认 skills 可被索引，MCP tools 可被调用。
-5. 报告安装路径、MCP 配置位置、调用方式。
-```
-
-## 已交付能力
-
-| Skill | 用途 |
-|---|---|
-| `caidazi-market-pulse` | 市场热点、大盘走势、板块概览 |
-| `caidazi-asset-research` | 单标的研究、多标的比较 |
-| `caidazi-stock-screener` | 自然语言选股 |
-| `caidazi-user-assets` | 财搭子自选与持仓查询 |
-| `caidazi-finance-search` | 资讯、公告、研报、政策检索 |
-| `caidazi-fund-etf-research` | 基金与 ETF 研究 |
-| `caidazi-macro-research` | 宏观与大类资产分析 |
-| `caidazi-portfolio-review` | 轻量组合复盘 |
-
-公开 skill 不得包含内部表名、原始查询指令、内部账户工具名或具体打分规则。
+- 不要暴露 API Key、内部表名、原始查询指令、内部账户工具名或具体打分规则。
+- 不要编造行情、公告、研报、宏观数据或用户资产。
+- 不要把候选标的表述为收益承诺或确定性买卖建议。
+- 不要默认读取用户持仓或自选作为安装验证。
