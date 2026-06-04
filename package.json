@@ -1,0 +1,46 @@
+{
+  "name": "@caidazi/mcp",
+  "version": "0.2.1",
+  "description": "Caidazi MCP stdio bridge for generic AI agents.",
+  "type": "module",
+  "keywords": [
+    "caidazi",
+    "mcp",
+    "model-context-protocol",
+    "ai-agent",
+    "finance"
+  ],
+  "homepage": "https://github.com/caidazi/dafa-skills#readme",
+  "bugs": {
+    "url": "https://github.com/caidazi/dafa-skills/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/caidazi/dafa-skills.git"
+  },
+  "bin": {
+    "caidazi-mcp": "bin/caidazi-mcp.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "manifest.yaml",
+    "caidazi-*/SKILL.md"
+  ],
+  "scripts": {
+    "prepack": "npm test",
+    "test": "node --test",
+    "validate": "node ./bin/caidazi-mcp.js validate"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0"
+  },
+  "devDependencies": {}
+}

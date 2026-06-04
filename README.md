@@ -1,58 +1,78 @@
-# 财搭子外部 Skills
+# 财搭子 Skills
 
-面向 Claude Code、Claude Desktop、Codex、OpenClaw、Cursor 等通用 AI Agent 的公开 skill 包。
+面向通用 AI Agent 的财搭子公开 skills。MCP server 已发布为 npm 包，用户不需要从这个 repo 安装 MCP。
 
-这些 skill 只负责告诉 Agent 什么时候调用财搭子 MCP、如何处理 API Key/工具不可用、结果如何组织。投资逻辑、数据拼接、候选生成、打分和私有账户访问都留在服务端 MCP wrapper 内部。
+- 这个 repo：提供 `caidazi-*` skills、`manifest.yaml` 和安装引导。
+- `@caidazi/mcp`：通过 npm 安装，负责用标准 stdio MCP 暴露财搭子工具。
+- `caidazi-*` skills：告诉 Agent 什么时候调用工具、如何处理 API Key、结果如何组织。
+- 投资逻辑、行情数据、打分规则和账户访问都留在财搭子后端。
 
 统一使用 `CAIDAZI_API_KEY`。
 
-## Agent 安装契约
+## 快速安装
 
-如果你是正在安装本仓库的 AI Agent，请以 `manifest.yaml` 为真源，不要写死某个客户端的旧配置路径。
-
-1. 拉取 `https://github.com/caidazi/dafa-skills.git`，读取 `manifest.yaml`。
-2. 安装 `skills.included` 中的 skill 目录；如果当前 Agent 不支持 skills，进入 MCP-only 模式并说明限制。
-3. 配置 MCP：
-   - name: `mcp.server_name`
-   - transport: 当前 Agent 对 Streamable HTTP 的等价写法
-   - endpoint: 使用 `mcp.endpoint`；`mcp.production_endpoint` 是同值兼容字段
-   - auth: `Authorization: Bearer {CAIDAZI_API_KEY}`，key 必须来自 secret/env 引用
-4. 处理 API Key：
-   - 不要生成 key，不要要求用户把完整 key 发到聊天里。
-   - 不要通过 `printenv`、`echo`、日志、截图或最终报告回显完整 key。
-   - 不要把 key 写入仓库、README、issue、PR 或普通项目配置文件。
-   - 如果缺 key，引导用户到财搭子 App 领取，并用 secret store、MCP 配置 UI、本机环境变量或交互式 secret 输入设置。
-5. 处理 endpoint 安全：
-   - 使用 `mcp.endpoint` 中的官方 HTTPS endpoint 配置 MCP。
-   - 不要使用 README、issue、历史记录或本地测试环境里的其他 endpoint。
-   - 不要在非 HTTPS endpoint 上发送 Bearer key。
-6. 验证：
-   - 先做本地验证：manifest 可解析、skills 已索引或 MCP-only、MCP 配置已写入或生成草案。
-   - 网络 smoke test 只能使用 `required_mcp.smoke_safe_tools`。
-   - 禁止用自选、持仓、组合工具做安装验证；这些账户工具只在用户主动询问个人资产时使用。
-7. 安装后向用户说明能做什么，区分公开能力和账户能力，并询问用户想先做哪类任务。
-
-安装报告请保持简短，包含：skills 模式、MCP 配置状态、API Key 状态（不回显 key）、传输安全、公开工具可见性、smoke test 结果或跳过原因。
-
-## 用户快速开始
-
-复制下面这段发给你的 AI Agent：
+把下面这段发给你的 Agent：
 
 ```text
-请为我安装财搭子（Caidazi）Skills 和 MCP。
+请帮我安装财搭子 Skills 和 MCP。
 
-Repo: https://github.com/caidazi/dafa-skills.git
+仓库：https://github.com/caidazi/dafa-skills
 
-请读取 README.md 和 manifest.yaml，以 manifest.yaml 为安装真源。
+请以 manifest.yaml 为安装真源：
+1. 从这个 repo 安装 caidazi-* skills。
+2. 不要从这个 repo 运行 MCP server；MCP 通过 npm 包 @caidazi/mcp 安装。
+3. 配置 caidazi MCP，使用 stdio：
+  command: npx
+  args: -y @caidazi/mcp
 
-要求：
-1. 安装 manifest.yaml 中列出的 skills；如果当前 Agent 不支持 skills，请进入 MCP-only 模式并说明限制。
-2. 配置 caidazi MCP，endpoint、transport、auth 都从 manifest.yaml 读取。
-3. 检查 CAIDAZI_API_KEY。
-4. 如果没有 key，不要生成 key，不要让我把完整 key 发到聊天里。请告诉我到财搭子 App -> 大发 agent 页面 -> 左上角 skill icon -> Skills 页面领取，然后用当前 Agent 支持的安全方式设置为 CAIDAZI_API_KEY。
-5. 使用 manifest.yaml 中的官方 HTTPS endpoint，不要改用其他 endpoint。
-6. 验证时只调用 smoke_safe_tools，不要调用我的自选、持仓或组合工具。
-7. 安装完成后，请简短说明财搭子能做什么，并问我想先做哪类任务。
+请用当前 Agent 支持的安全 secret/env 方式设置 CAIDAZI_API_KEY。
+不要打印、回显或写入仓库。
+
+当前先使用测试环境：
+  CAIDAZI_BASE_URL=http://101.126.22.17:5011
+  CAIDAZI_ALLOW_HTTP=true
+
+安装后请验证 MCP tools/list 能看到 manifest.yaml 里的 public_tools。
+smoke test 只能调用 smoke_safe_tools；除非我明确询问个人资产，不要读取我的自选、持仓或组合。
+```
+
+## MCP 通过 npm 配置
+
+不同 Agent 的 MCP 配置文件位置不同，请使用该 Agent 官方支持的配置方式。通用形状如下：
+
+```json
+{
+  "mcpServers": {
+    "caidazi": {
+      "command": "npx",
+      "args": ["-y", "@caidazi/mcp"],
+      "env": {
+        "CAIDAZI_API_KEY": "<通过 secret/env 安全注入>",
+        "CAIDAZI_BASE_URL": "http://101.126.22.17:5011",
+        "CAIDAZI_ALLOW_HTTP": "true"
+      }
+    }
+  }
+}
+```
+
+`CAIDAZI_ALLOW_HTTP=true` 只用于当前可信测试后端。后端切到 HTTPS 后应移除。
+
+## 验证
+
+```bash
+npx -y @caidazi/mcp --help
+CAIDAZI_API_KEY=<redacted> CAIDAZI_BASE_URL=http://101.126.22.17:5011 CAIDAZI_ALLOW_HTTP=true npx -y @caidazi/mcp validate
+```
+
+预期结果：bridge 能连到测试后端，并列出财搭子公开工具。
+
+本地开发验证：
+
+```bash
+npm install
+npm test
+CAIDAZI_API_KEY=<redacted> CAIDAZI_BASE_URL=http://101.126.22.17:5011 CAIDAZI_ALLOW_HTTP=true npm run validate
 ```
 
 ## API Key
@@ -63,45 +83,35 @@ Repo: https://github.com/caidazi/dafa-skills.git
 2. 进入大发 agent 页面。
 3. 点击左上角的 skill icon。
 4. 进入 Skills 页面，领取或复制 API Key。
-5. 用安全方式设置为 `CAIDAZI_API_KEY`。
 
-不要把完整 API Key 粘贴到聊天、日志或公开文件里。Agent 只能报告 key 是否存在、是否可用，不应回显完整 key。
-
-## Endpoint 安全
-
-`manifest.yaml` 当前只公开官方 HTTPS 生产 endpoint。
-
-默认安装必须使用 `mcp.endpoint`。`mcp.production_endpoint` 仅为兼容字段，必须与 `mcp.endpoint` 保持一致；不要从 README、issue、历史记录或本地测试环境推断其他带 key 的连接目标。
+不要把完整 API Key 粘贴到聊天、日志、截图、issue、PR 或项目文件里。
 
 ## 能做什么
 
 公开能力：
 
-- 市场脉搏：热点、大盘走势、板块概览、盘前盘中盘后摘要。
-- 单标的研究：股票、ETF、基金、指数的快速研究和原因分析。
+- 市场脉搏：热点、大盘走势、板块变化和市场摘要。
+- 单标的研究：股票、ETF、基金、指数的快速研究。
 - 多标的比较：比较多个股票、ETF、基金或指数。
 - 自然语言选股：用自然语言筛选候选股票或 ETF。
 - 财经搜索：搜索资讯、公告、研报、政策和事件进展。
-- 基金/ETF 研究：查询 ETF 持仓、指数相关 ETF、基金和 ETF 对比。
-- 宏观研究：分析政策、利率、通胀、汇率和大类资产影响。
+- 基金/ETF 研究：ETF 持仓、指数相关 ETF、基金和 ETF 对比。
+- 宏观研究：政策、利率、通胀、汇率和大类资产影响。
 
-账户能力需要 API Key 已绑定财搭子账户，且只能在用户主动询问个人资产时使用：
+账户能力需要 API Key 已绑定财搭子账户，并且只在用户明确询问个人资产时使用：
 
-- 用户资产上下文：查询并使用财搭子自选、持仓和组合快照。
-- 组合复盘：基于财搭子自选、持仓或组合快照做轻量复盘。
+- 自选、持仓和组合快照。
+- 轻量组合复盘。
 
-样例 query：
+## 安全边界
 
-- 今天 A 股市场热点是什么？
-- 帮我看下宁德时代最近的核心矛盾。
-- 比亚迪和宁德时代谁更值得跟踪？
-- 找出最近资金强、估值不贵的新能源股票。
-- 纳指 ETF 和恒生科技 ETF 怎么选？
-- 我的自选里今天哪些最值得关注？（会读取账户资产，需你主动发起）
+- 不暴露 API Key、内部表名、后端原始提示词或打分规则。
+- 不从这个 repo 直接运行 MCP；MCP server 的用户安装入口是 npm 包 `@caidazi/mcp`。
+- 不把测试 REST 后端当成 Agent-facing MCP endpoint；Agent-facing MCP 是 `@caidazi/mcp` stdio。
+- 不编造行情、公告、研报、宏观数据或用户资产。
+- 不把结果表述为收益承诺或确定性买卖建议。
+- 安装 smoke test 不读取自选、持仓或组合。
 
-## 边界
+## English Note
 
-- 不要暴露 API Key、内部表名、原始查询指令、内部账户工具名或具体打分规则。
-- 不要编造行情、公告、研报、宏观数据或用户资产。
-- 不要把候选标的表述为收益承诺或确定性买卖建议。
-- 不要默认读取用户持仓或自选作为安装验证。
+Caidazi skills are installed from this repo. Caidazi MCP is installed from npm with `npx -y @caidazi/mcp`. For the current test backend, set `CAIDAZI_BASE_URL=http://101.126.22.17:5011` and `CAIDAZI_ALLOW_HTTP=true`. Keep `CAIDAZI_API_KEY` in your Agent's secure secret/env flow.
