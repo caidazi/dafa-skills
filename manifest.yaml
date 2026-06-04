@@ -1,18 +1,37 @@
 schema_version: 1
 bundle: caidazi-skills
-version: 0.1.0
+version: 0.2.1
 env:
   primary_api_key: CAIDAZI_API_KEY
+  current_backend_url: CAIDAZI_BASE_URL
+  allow_http_test_backend: CAIDAZI_ALLOW_HTTP
 mcp:
   server_name: caidazi
-  transport: streamable-http
-  endpoint: "https://mcp.zhicepilot.com/"
-  endpoint_kind: production
-  production_endpoint: "https://mcp.zhicepilot.com/"
+  transport: stdio
+  npm_package: "@caidazi/mcp"
+  command: npx
+  args:
+    - -y
+    - "@caidazi/mcp"
+  env:
+    CAIDAZI_API_KEY:
+      secret: true
+      required: true
+    CAIDAZI_BASE_URL:
+      value: "http://101.126.22.17:5011"
+      required_for_current_test_backend: true
+    CAIDAZI_ALLOW_HTTP:
+      value: "true"
+      required_for_current_test_backend: true
+  hosted_endpoint: null
+  hosted_endpoint_kind: disabled-until-official-https-mcp-is-live
   security:
     tls_required_for_bearer: true
-    allow_bearer_over_plain_http: false
-    production_endpoint_instruction: "Use the official Caidazi MCP HTTPS endpoint for authenticated MCP configuration."
+    allow_bearer_over_plain_http_by_default: false
+    explicit_plain_http_test_opt_in_env: CAIDAZI_ALLOW_HTTP
+    plain_http_scope: "current trusted test backend only"
+    local_bridge_instruction: "Default install uses the npm stdio MCP bridge. The bridge exposes standard MCP tools to the Agent and calls the Caidazi backend internally."
+    hosted_endpoint_instruction: "Use the hosted HTTPS MCP endpoint only after it passes MCP initialize/list-tools health checks."
   auth:
     type: bearer
     header: Authorization
@@ -20,6 +39,48 @@ mcp:
     format: "Bearer {value}"
     secret: true
     redact: true
+installation:
+  default_mode: stdio-mcp-bridge
+  supported_modes:
+    - stdio-mcp-bridge
+    - hosted-mcp
+    - skills-only
+  stdio_mcp_bridge:
+    config_instruction: "Use the current Agent's documented MCP configuration flow. Do not guess legacy config paths."
+    server_name_ref: mcp.server_name
+    transport_ref: mcp.transport
+    command_ref: mcp.command
+    args_ref: mcp.args
+    auth_env_ref: CAIDAZI_API_KEY
+    backend_env_ref: CAIDAZI_BASE_URL
+    allow_http_env_ref: CAIDAZI_ALLOW_HTTP
+    package_ref: mcp.npm_package
+    success_condition: "The current Agent discovers the tools listed in required_mcp.public_tools through MCP."
+  hosted_mcp:
+    enabled: false
+    endpoint_ref: mcp.hosted_endpoint
+    enable_when: "An official HTTPS MCP transport endpoint is deployed and passes health checks."
+  skills_only:
+    report_as: "Skills-only mode"
+    limitation: "No Caidazi tools are available; the Agent can only follow the skill output structure."
+backend_api:
+  base_url: "http://101.126.22.17:5011"
+  endpoint_kind: temporary-plain-http
+  tool_registry_path: "/api/tools/registered"
+  tool_call_path: "/api/tools/call"
+  used_by: "@caidazi/mcp stdio bridge"
+  auth:
+    type: bearer
+    header: Authorization
+    env_ref: CAIDAZI_API_KEY
+    format: "Bearer {value}"
+    secret: true
+    redact: true
+  safety:
+    requires_allow_http_env: CAIDAZI_ALLOW_HTTP
+    use_only_when_user_confirms_temporary_test_env: true
+    do_not_expose_as_agent_mcp_endpoint: true
+    do_not_store_api_key_in_repo_or_shared_config: true
 skills:
   included:
     - caidazi-market-pulse
@@ -70,6 +131,13 @@ verification:
   mcp_connection:
     server_name_ref: mcp.server_name
     must_connect_when_secure_transport_available: true
+    health_check_required: true
+    agent_health_check_required: true
+    tools_discovery_required: true
+  backend_bridge:
+    test_registry_ref: backend_api.tool_registry_path
+    tool_call_ref: backend_api.tool_call_path
+    plain_http_requires_explicit_opt_in: true
   api_key:
     never_print_full_key: true
     never_read_with_printenv: true
