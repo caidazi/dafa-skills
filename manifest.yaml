@@ -1,6 +1,10 @@
 schema_version: 1
 bundle: caidazi-skills
 version: 0.2.1
+repository_role:
+  user_install_source: "skills and manifest"
+  mcp_install_source: "npm package @caidazi/mcp"
+  do_not_run_mcp_from_repo: true
 env:
   primary_api_key: CAIDAZI_API_KEY
   current_backend_url: CAIDAZI_BASE_URL
