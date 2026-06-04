@@ -15,7 +15,7 @@
 3. 配置 MCP：
    - name: `mcp.server_name`
    - transport: 当前 Agent 对 Streamable HTTP 的等价写法
-   - endpoint: 优先使用 `mcp.production_endpoint` / `mcp.endpoint`
+   - endpoint: 使用 `mcp.endpoint`；`mcp.production_endpoint` 是同值兼容字段
    - auth: `Authorization: Bearer {CAIDAZI_API_KEY}`，key 必须来自 secret/env 引用
 4. 处理 API Key：
    - 不要生成 key，不要要求用户把完整 key 发到聊天里。
@@ -23,9 +23,9 @@
    - 不要把 key 写入仓库、README、issue、PR 或普通项目配置文件。
    - 如果缺 key，引导用户到财搭子 App 领取，并用 secret store、MCP 配置 UI、本机环境变量或交互式 secret 输入设置。
 5. 处理 endpoint 安全：
-   - 如果 HTTPS endpoint 仍是占位符，暂停并要求用户或项目方提供官方 HTTPS endpoint。
-   - 不要自动降级到 `mcp.test_endpoint`。
-   - 不要在公网向 HTTP endpoint 发送 Bearer key；只有用户明确确认可信测试环境时才可使用 HTTP 测试端点。
+   - 使用 `mcp.endpoint` 中的官方 HTTPS endpoint 配置 MCP。
+   - 不要使用 README、issue、历史记录或本地测试环境里的其他 endpoint。
+   - 不要在非 HTTPS endpoint 上发送 Bearer key。
 6. 验证：
    - 先做本地验证：manifest 可解析、skills 已索引或 MCP-only、MCP 配置已写入或生成草案。
    - 网络 smoke test 只能使用 `required_mcp.smoke_safe_tools`。
@@ -50,7 +50,7 @@ Repo: https://github.com/caidazi/dafa-skills.git
 2. 配置 caidazi MCP，endpoint、transport、auth 都从 manifest.yaml 读取。
 3. 检查 CAIDAZI_API_KEY。
 4. 如果没有 key，不要生成 key，不要让我把完整 key 发到聊天里。请告诉我到财搭子 App -> 大发 agent 页面 -> 左上角 skill icon -> Skills 页面领取，然后用当前 Agent 支持的安全方式设置为 CAIDAZI_API_KEY。
-5. 如果 HTTPS endpoint 还是占位符，请先让我提供官方 HTTPS endpoint，不要自动改用 HTTP 测试端点。
+5. 使用 manifest.yaml 中的官方 HTTPS endpoint，不要改用其他 endpoint。
 6. 验证时只调用 smoke_safe_tools，不要调用我的自选、持仓或组合工具。
 7. 安装完成后，请简短说明财搭子能做什么，并问我想先做哪类任务。
 ```
@@ -69,9 +69,9 @@ Repo: https://github.com/caidazi/dafa-skills.git
 
 ## Endpoint 安全
 
-`manifest.yaml` 当前默认使用 HTTPS 生产 endpoint 占位符，并保留一个 HTTP 测试端点。
+`manifest.yaml` 当前只公开官方 HTTPS 生产 endpoint。
 
-正式公开发布前，必须把 `https://<caidazi-https-mcp-endpoint>/mcp` 替换为官方 HTTPS endpoint。HTTP 测试端点只能在用户明确确认可信测试环境时使用，不能作为默认带 key 连接目标。
+默认安装必须使用 `mcp.endpoint`。`mcp.production_endpoint` 仅为兼容字段，必须与 `mcp.endpoint` 保持一致；不要从 README、issue、历史记录或本地测试环境推断其他带 key 的连接目标。
 
 ## 能做什么
 
