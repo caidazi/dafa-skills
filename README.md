@@ -1,38 +1,41 @@
-# Caidazi Skills and MCP
+# 财搭子 Skills 和 MCP
 
-Public skills and MCP bridge for 财搭子 (Caidazi), an AI investment assistant for Chinese retail investors.
+面向通用 AI Agent 的财搭子公开 skills 与 MCP bridge。
 
-- `@caidazi/mcp` exposes Caidazi tools through standard stdio MCP.
-- `caidazi-*` skills tell an Agent when to use the tools and how to present results.
-- Tool logic, market data, scoring, and account access stay on the Caidazi backend.
+- `@caidazi/mcp`：通过标准 stdio MCP 暴露财搭子工具。
+- `caidazi-*` skills：告诉 Agent 什么时候调用工具、如何处理 API Key、结果如何组织。
+- 投资逻辑、行情数据、打分规则和账户访问都留在财搭子后端。
 
-Use `CAIDAZI_API_KEY` for authentication.
+统一使用 `CAIDAZI_API_KEY`。
 
-## Quick Install
+## 快速安装
 
-Ask your Agent:
+把下面这段发给你的 Agent：
 
 ```text
-Install Caidazi Skills and MCP from https://github.com/caidazi/dafa-skills.
+请帮我安装财搭子 Skills 和 MCP。
 
-Use manifest.yaml as the source of truth.
-Configure the caidazi MCP server with stdio:
+仓库：https://github.com/caidazi/dafa-skills
+
+请以 manifest.yaml 为安装真源。
+配置 caidazi MCP，使用 stdio：
   command: npx
   args: -y @caidazi/mcp
 
-Set CAIDAZI_API_KEY through your secure secret/env flow. Do not print it or write it into the repo.
+请用当前 Agent 支持的安全 secret/env 方式设置 CAIDAZI_API_KEY。
+不要打印、回显或写入仓库。
 
-For the current test environment, set:
+当前先使用测试环境：
   CAIDAZI_BASE_URL=http://101.126.22.17:5011
   CAIDAZI_ALLOW_HTTP=true
 
-After installation, verify MCP tools/list can see the public tools in manifest.yaml.
-Use only smoke_safe_tools for smoke tests; do not read my watchlist, positions, or portfolio unless I explicitly ask.
+安装后请验证 MCP tools/list 能看到 manifest.yaml 里的 public_tools。
+smoke test 只能调用 smoke_safe_tools；除非我明确询问个人资产，不要读取我的自选、持仓或组合。
 ```
 
-## MCP Config Shape
+## MCP 配置形状
 
-Use your Agent's documented MCP configuration location. The server shape is:
+不同 Agent 的 MCP 配置文件位置不同，请使用该 Agent 官方支持的配置方式。通用形状如下：
 
 ```json
 {
@@ -41,7 +44,7 @@ Use your Agent's documented MCP configuration location. The server shape is:
       "command": "npx",
       "args": ["-y", "@caidazi/mcp"],
       "env": {
-        "CAIDAZI_API_KEY": "<secure secret/env reference>",
+        "CAIDAZI_API_KEY": "<通过 secret/env 安全注入>",
         "CAIDAZI_BASE_URL": "http://101.126.22.17:5011",
         "CAIDAZI_ALLOW_HTTP": "true"
       }
@@ -50,18 +53,18 @@ Use your Agent's documented MCP configuration location. The server shape is:
 }
 ```
 
-`CAIDAZI_ALLOW_HTTP=true` is only for the current trusted test backend. Remove it when the backend is HTTPS.
+`CAIDAZI_ALLOW_HTTP=true` 只用于当前可信测试后端。后端切到 HTTPS 后应移除。
 
-## Verify
+## 验证
 
 ```bash
 npx -y @caidazi/mcp --help
 CAIDAZI_API_KEY=<redacted> CAIDAZI_BASE_URL=http://101.126.22.17:5011 CAIDAZI_ALLOW_HTTP=true npx -y @caidazi/mcp validate
 ```
 
-Expected result: the bridge reports backend reachability and lists the public Caidazi tools.
+预期结果：bridge 能连到测试后端，并列出财搭子公开工具。
 
-For local development:
+本地开发验证：
 
 ```bash
 npm install
@@ -71,35 +74,40 @@ CAIDAZI_API_KEY=<redacted> CAIDAZI_BASE_URL=http://101.126.22.17:5011 CAIDAZI_AL
 
 ## API Key
 
-Get your API key in the Caidazi app:
+在财搭子 App 中领取：
 
-1. Open the Caidazi app.
-2. Go to the 大发 agent page.
-3. Tap the skill icon in the top-left corner.
-4. Open Skills and copy the API key.
+1. 打开财搭子 App。
+2. 进入大发 agent 页面。
+3. 点击左上角的 skill icon。
+4. 进入 Skills 页面，领取或复制 API Key。
 
-Never paste the full API key into chat, logs, screenshots, issues, PRs, or project files.
+不要把完整 API Key 粘贴到聊天、日志、截图、issue、PR 或项目文件里。
 
-## What It Can Do
+## 能做什么
 
-Public tools:
+公开能力：
 
-- Market pulse: market hotspots, sector moves, and market summaries.
-- Asset research: stocks, ETFs, funds, indexes, and comparison.
-- Stock screening: natural-language candidate discovery.
-- Finance search: news, filings, research, policy, and event context.
-- Fund and ETF research: ETF holdings, related ETFs, and fund comparisons.
-- Macro research: policy, rates, inflation, FX, and cross-asset impact.
+- 市场脉搏：热点、大盘走势、板块变化和市场摘要。
+- 单标的研究：股票、ETF、基金、指数的快速研究。
+- 多标的比较：比较多个股票、ETF、基金或指数。
+- 自然语言选股：用自然语言筛选候选股票或 ETF。
+- 财经搜索：搜索资讯、公告、研报、政策和事件进展。
+- 基金/ETF 研究：ETF 持仓、指数相关 ETF、基金和 ETF 对比。
+- 宏观研究：政策、利率、通胀、汇率和大类资产影响。
 
-Account tools require an API key bound to a Caidazi account and should only run when the user explicitly asks:
+账户能力需要 API Key 已绑定财搭子账户，并且只在用户明确询问个人资产时使用：
 
-- Watchlist, positions, and portfolio snapshots.
-- Lightweight portfolio review.
+- 自选、持仓和组合快照。
+- 轻量组合复盘。
 
-## Safety
+## 安全边界
 
-- Do not expose API keys, internal table names, raw backend prompts, or scoring rules.
-- Do not treat the test REST backend as an Agent-facing MCP endpoint; Agent-facing MCP is stdio through `@caidazi/mcp`.
-- Do not fabricate market data, filings, research, macro data, or user assets.
-- Do not present outputs as guaranteed returns or deterministic buy/sell advice.
-- Do not read account tools during installation smoke tests.
+- 不暴露 API Key、内部表名、后端原始提示词或打分规则。
+- 不把测试 REST 后端当成 Agent-facing MCP endpoint；Agent-facing MCP 是 `@caidazi/mcp` stdio。
+- 不编造行情、公告、研报、宏观数据或用户资产。
+- 不把结果表述为收益承诺或确定性买卖建议。
+- 安装 smoke test 不读取自选、持仓或组合。
+
+## English Note
+
+Caidazi MCP uses stdio through `npx -y @caidazi/mcp`. For the current test backend, set `CAIDAZI_BASE_URL=http://101.126.22.17:5011` and `CAIDAZI_ALLOW_HTTP=true`. Keep `CAIDAZI_API_KEY` in your Agent's secure secret/env flow.
