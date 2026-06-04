@@ -6,15 +6,13 @@ env:
 mcp:
   server_name: caidazi
   transport: streamable-http
-  endpoint: "https://<caidazi-https-mcp-endpoint>/mcp"
-  endpoint_kind: production-placeholder
-  production_endpoint: "https://<caidazi-https-mcp-endpoint>/mcp"
-  test_endpoint: http://101.126.22.17:5011/mcp
+  endpoint: "https://mcp.zhicepilot.com/"
+  endpoint_kind: production
+  production_endpoint: "https://mcp.zhicepilot.com/"
   security:
     tls_required_for_bearer: true
     allow_bearer_over_plain_http: false
-    production_endpoint_instruction: "Replace the HTTPS placeholder with the official Caidazi MCP HTTPS endpoint before public release or authenticated network verification."
-    plain_http_instruction: "test_endpoint is plain HTTP. Do not send CAIDAZI_API_KEY over it on public networks. Use only for trusted/internal testing after explicit user confirmation."
+    production_endpoint_instruction: "Use the official Caidazi MCP HTTPS endpoint for authenticated MCP configuration."
   auth:
     type: bearer
     header: Authorization
@@ -79,7 +77,6 @@ verification:
     missing_key_instruction: "Ask the user to open 财搭子 App -> 大发 agent 页面 -> 左上角 skill icon -> Skills 页面, then set CAIDAZI_API_KEY through the current Agent's secure configuration path."
   network_smoke_test:
     require_tls_for_authenticated_calls: true
-    skip_when_endpoint_is_plain_http_unless_user_confirms_trusted_network: true
     allowed_tools_ref: required_mcp.smoke_safe_tools
     forbidden_tools_ref: required_mcp.smoke_forbidden_tools
 post_install:
