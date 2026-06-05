@@ -14,7 +14,7 @@ export function parseInputDetailToSchema(inputDetail) {
     const [rawName, rawType, rawRequired, rawDescription] = row;
     const name = cleanCell(rawName).replace(/^`|`$/g, "");
 
-    if (!name || name === "参数" || /^-+$/.test(name)) {
+    if (!name || name === "参数" || isNoParameterName(name) || /^-+$/.test(name)) {
       continue;
     }
 
@@ -72,6 +72,10 @@ function cleanCell(value = "") {
 
 function isRequired(value) {
   return /^(是|必填|required|true|yes)$/i.test(value);
+}
+
+function isNoParameterName(value) {
+  return /^(无参数|无|none|no parameters?|n\/a)$/i.test(value);
 }
 
 function typeToSchema(type) {

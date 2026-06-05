@@ -24,8 +24,9 @@ test("validate --probe lists tools and runs the smoke-safe probe", async () => {
       },
     );
 
-    assert.match(stdout, /Caidazi backend reachable: 1 public tools exposed/);
+    assert.match(stdout, /Caidazi backend reachable: 2 public tools exposed/);
     assert.match(stdout, /- extract_assets/);
+    assert.match(stdout, /- get_real_time_record/);
     assert.match(stdout, /Probe extract_assets succeeded:/);
   } finally {
     await backend.close();
@@ -42,6 +43,12 @@ async function createFakeBackend() {
             description: "识别资产",
             input_detail:
               "| 参数 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| `text` | string | 是 | 用户输入 |\n",
+          },
+          {
+            name: "get_real_time_record",
+            description: "获取证券实时行情数据",
+            input_detail:
+              "| 参数 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| `symbol` | string | 是 | 证券代码 |\n",
           },
         ],
       });
