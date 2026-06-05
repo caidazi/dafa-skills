@@ -1,6 +1,6 @@
 schema_version: 1
 bundle: caidazi-skills
-version: 0.2.1
+version: 0.2.2
 repository_role:
   user_install_source: "skills and manifest"
   mcp_install_source: "npm package @caidazi/mcp"
@@ -59,7 +59,7 @@ installation:
     backend_env_ref: CAIDAZI_BASE_URL
     allow_http_env_ref: CAIDAZI_ALLOW_HTTP
     package_ref: mcp.npm_package
-    success_condition: "The current Agent discovers the tools listed in required_mcp.public_tools through MCP."
+    success_condition: "The current Agent discovers the tools listed in required_mcp.public_tools and required_mcp.account_tools through MCP."
   hosted_mcp:
     enabled: false
     endpoint_ref: mcp.hosted_endpoint

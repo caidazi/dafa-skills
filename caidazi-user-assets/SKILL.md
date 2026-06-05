@@ -29,7 +29,7 @@ description: 当用户想查看或使用自己在财搭子的自选、持仓、�
 
 1. 判断 `asset_type`：
    - watchlist：用户说自选、watchlist、关注资产。
-   - holdings：用户说持仓、托管、positions。
+   - holdings：用户说持仓、账户持仓、positions。
    - all：用户说我的资产、个人上下文，或同时需要自选和持仓。
 2. 自选调用 `get_caidazi_user_watchlist`，持仓调用 `get_caidazi_positions_summary(mask_sensitive=true)`，全部资产调用 `get_caidazi_portfolio_snapshot(mask_sensitive=true)`。
 3. 如果工具返回 `requires_login`、`account_not_linked` 或 `ASSET_PERMISSION_REQUIRED`，提示用户到 财搭子 App -> 大发 agent -> 左上角 skill icon -> Skills 页面领取或绑定 API Key。

@@ -32,8 +32,8 @@
   CAIDAZI_BASE_URL=http://101.126.22.17:5011
   CAIDAZI_ALLOW_HTTP=true
 
-安装后请验证 MCP tools/list 能看到 manifest.yaml 里的 public_tools。
-smoke test 只能调用 smoke_safe_tools；除非我明确询问个人资产，不要读取我的自选、持仓或组合。
+安装后请验证 MCP tools/list 能看到 manifest.yaml 里的 public_tools 和 account_tools。
+smoke test 只能调用 smoke_safe_tools；account_tools 只做发现验证。除非我明确询问个人资产，不要读取我的自选、持仓或组合。
 ```
 
 ## MCP 通过 npm 配置
