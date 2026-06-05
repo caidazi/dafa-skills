@@ -37,7 +37,7 @@ async function validate({ argv, env }) {
   const tools = await client.listTools();
 
   process.stdout.write(`Caidazi backend reachable: ${tools.length} public tools exposed\n`);
-  for (const tool of tools.slice(0, 12)) {
+  for (const tool of tools) {
     process.stdout.write(`- ${tool.name}\n`);
   }
 

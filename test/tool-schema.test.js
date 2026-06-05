@@ -32,6 +32,20 @@ test("parses markdown input detail into a JSON schema", () => {
   });
 });
 
+test("ignores explicit no-parameter rows", () => {
+  const schema = parseInputDetailToSchema(`| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| 无参数 | | | 直接调用即可获取当前实时行情总结 |
+`);
+
+  assert.deepEqual(schema, {
+    type: "object",
+    properties: {},
+    required: [],
+    additionalProperties: true,
+  });
+});
+
 test("creates MCP tool metadata from registry records", () => {
   const tool = createMcpTool({
     name: "get_asset_overview",

@@ -20,6 +20,7 @@ description: 当用户询问基金、ETF、指数基金的研究、筛选、诊�
 ## 可用工具
 
 - `get_asset_overview`
+- `get_real_time_record`
 - `investment_search_pro`
 - `screen_stocks`
 - `compare_assets`
@@ -33,9 +34,10 @@ description: 当用户询问基金、ETF、指数基金的研究、筛选、诊�
 单只基金或 ETF：
 
 1. 识别名称或代码。
-2. 调用 `get_asset_overview(symbol=...)`。
-3. 如果用户关心 ETF 持仓结构，调用 `get_etf_constituents(symbol, top_n)`。
-4. 只展示工具返回的规模、跟踪对象、费用、风险、持仓和近期变化。
+2. 如果用户问当前价格、涨跌幅、盘中表现或实时行情，调用 `get_real_time_record(symbol=...)`。
+3. 调用 `get_asset_overview(symbol=...)`。
+4. 如果用户关心 ETF 持仓结构，调用 `get_etf_constituents(symbol, top_n)`。
+5. 只展示工具返回的规模、跟踪对象、费用、风险、持仓、实时行情和近期变化。
 
 筛选基金或 ETF：
 
@@ -56,10 +58,11 @@ description: 当用户询问基金、ETF、指数基金的研究、筛选、诊�
 ## 输出结构
 
 1. 一句话结论。
-2. 核心指标或候选表格。
-3. 适合继续研究的原因。
-4. 主要风险和数据时间。
-5. 下一步建议：比较、看持仓、查新闻或加入自选。
+2. 实时行情或核心指标，如果工具返回。
+3. 候选表格或持仓结构。
+4. 适合继续研究的原因。
+5. 主要风险和数据时间。
+6. 下一步建议：比较、看持仓、查新闻或加入自选。
 
 ## 错误处理
 

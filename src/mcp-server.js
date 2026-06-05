@@ -20,7 +20,7 @@ export function createServer({ client, version = "0.1.0" }) {
         tools: {},
       },
       instructions:
-        "Caidazi tools provide market pulse, asset research, stock screening, fund/ETF research, macro analysis, finance search, user assets, and portfolio review.",
+        "Caidazi tools provide market pulse, real-time asset quotes, asset research, capital-flow analysis, technical analysis, financial analysis, valuation analysis, stock screening, fund/ETF research, macro analysis, finance search, user assets, and portfolio review.",
     },
   );
 

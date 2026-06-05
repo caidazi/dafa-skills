@@ -103,6 +103,11 @@ required_mcp:
     - get_market_analysis
     - get_macro_analysis
     - get_asset_overview
+    - get_real_time_record
+    - analyze_capital_flow
+    - analyze_technical
+    - analyze_fundamentals_financial
+    - analyze_fundamentals_valuation
     - investment_search_pro
     - compare_assets
     - screen_stocks
@@ -119,6 +124,7 @@ required_mcp:
     - get_real_time_market_summary
     - get_market_analysis
     - get_macro_analysis
+    - get_real_time_record
   smoke_forbidden_tools:
     - get_caidazi_user_watchlist
     - get_caidazi_positions_summary
@@ -158,7 +164,9 @@ post_install:
   sample_queries:
     public:
       - 今天 A 股市场热点是什么？
+      - 贵州茅台现在多少钱？
       - 帮我看下宁德时代最近的核心矛盾。
+      - 从资金面、技术面、财务和估值四个维度深度分析一下比亚迪。
       - 比亚迪和宁德时代谁更值得跟踪？
       - 找出最近资金强、估值不贵的新能源股票。
     account:
