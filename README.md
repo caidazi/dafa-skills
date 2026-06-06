@@ -34,11 +34,14 @@
 
 安装后请验证 MCP tools/list 能看到 manifest.yaml 里的 public_tools 和 account_tools。
 smoke test 只能调用 smoke_safe_tools；account_tools 只做发现验证。除非我明确询问个人资产，不要读取我的自选、持仓或组合。
+回答用户问题时，直接使用已配置的 caidazi MCP tools；不要为普通查询临时启动 @caidazi/mcp、手写 JSON-RPC，或把 API Key 放进命令、日志、临时文件。
 ```
 
 ## MCP 通过 npm 配置
 
 不同 Agent 的 MCP 配置文件位置不同，请使用该 Agent 官方支持的配置方式。通用形状如下：
+
+这里的 `command`/`args` 是 MCP server 配置，由 Agent 在后台管理；不是让 Agent 在回答用户问题时手动运行命令。
 
 ```json
 {
@@ -60,20 +63,22 @@ smoke test 只能调用 smoke_safe_tools；account_tools 只做发现验证。�
 
 ## 验证
 
-```bash
-npx -y @caidazi/mcp --help
-CAIDAZI_API_KEY=<redacted> CAIDAZI_BASE_URL=http://101.126.22.17:5011 CAIDAZI_ALLOW_HTTP=true npx -y @caidazi/mcp validate
-```
+Agent 侧验证：
 
-预期结果：bridge 能连到测试后端，并列出财搭子公开工具。
+1. 通过当前 Agent 的 MCP tools/list 或工具面板确认 `caidazi` 已连接。
+2. 确认能看到 `manifest.yaml` 里的 `public_tools` 和 `account_tools`。
+3. smoke test 只调用 `smoke_safe_tools`，不要读取自选、持仓或组合。
+4. 如果 MCP 未连接，先修 MCP 配置；不要为回答某个问题临时拼命令或手写 JSON-RPC。
 
-本地开发验证：
+维护者本地开发验证：
 
-```bash
+```text
 npm install
 npm test
-CAIDAZI_API_KEY=<redacted> CAIDAZI_BASE_URL=http://101.126.22.17:5011 CAIDAZI_ALLOW_HTTP=true npm run validate
+npm run validate
 ```
+
+运行 `npm run validate` 前，请用本机安全环境或 CI secret 设置 `CAIDAZI_API_KEY`。当前测试后端还需要设置 `CAIDAZI_BASE_URL=http://101.126.22.17:5011` 和 `CAIDAZI_ALLOW_HTTP=true`。
 
 ## API Key
 
@@ -91,7 +96,8 @@ CAIDAZI_API_KEY=<redacted> CAIDAZI_BASE_URL=http://101.126.22.17:5011 CAIDAZI_AL
 公开能力：
 
 - 市场脉搏：热点、大盘走势、板块变化和市场摘要。
-- 单标的研究：股票、ETF、基金、指数的实时行情、核心矛盾和深度研究。
+- 实时行情：简单查询最新价格、涨跌幅、成交量/额时直接使用 MCP 工具 `get_real_time_record`。
+- 单标的研究：股票、ETF、基金、指数的核心矛盾和深度研究。
 - 四维资产分析：资金面、技术面、财务面和估值面。
 - 多标的比较：比较多个股票、ETF、基金或指数。
 - 自然语言选股：用自然语言筛选候选股票或 ETF。
@@ -115,4 +121,4 @@ CAIDAZI_API_KEY=<redacted> CAIDAZI_BASE_URL=http://101.126.22.17:5011 CAIDAZI_AL
 
 ## English Note
 
-Caidazi skills are installed from this repo. Caidazi MCP is installed from npm with `npx -y @caidazi/mcp`. For the current test backend, set `CAIDAZI_BASE_URL=http://101.126.22.17:5011` and `CAIDAZI_ALLOW_HTTP=true`. Keep `CAIDAZI_API_KEY` in your Agent's secure secret/env flow.
+Caidazi skills are installed from this repo. Caidazi MCP is configured from the npm package `@caidazi/mcp` as a stdio MCP server. For the current test backend, set `CAIDAZI_BASE_URL=http://101.126.22.17:5011` and `CAIDAZI_ALLOW_HTTP=true`. Keep `CAIDAZI_API_KEY` in your Agent's secure secret/env flow.

@@ -48,12 +48,13 @@ export class CaidaziRestClient {
       throw new Error(`Tool ${toolName} is not exposed by @caidazi/mcp`);
     }
 
+    const normalizedParameters = normalizeToolParameters(toolName, parameters);
     const body = await this.request(this.callPath, {
       method: "POST",
       headers: this.headers({ "Content-Type": "application/json" }),
       body: JSON.stringify({
         tool_name: toolName,
-        parameters,
+        parameters: normalizedParameters,
       }),
     });
 
@@ -104,6 +105,69 @@ export class CaidaziRestClient {
   url(path) {
     return `${this.baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
   }
+}
+
+export function normalizeToolParameters(toolName, parameters = {}) {
+  if (!parameters || typeof parameters !== "object" || Array.isArray(parameters)) {
+    return parameters;
+  }
+
+  if (toolName !== "compare_assets") {
+    return parameters;
+  }
+
+  const normalized = { ...parameters };
+
+  if (!normalized.symbols && Array.isArray(normalized.assets)) {
+    normalized.symbols = normalized.assets;
+  }
+
+  if (Array.isArray(normalized.metrics)) {
+    normalized.metrics = normalizeCompareMetrics(normalized.metrics);
+  } else if (Array.isArray(normalized.dimensions)) {
+    normalized.metrics = normalizeCompareMetrics(normalized.dimensions);
+  }
+
+  delete normalized.assets;
+  delete normalized.dimensions;
+
+  return normalized;
+}
+
+function normalizeCompareMetrics(metrics) {
+  const result = [];
+  const seen = new Set();
+
+  for (const metric of metrics) {
+    const normalized = normalizeCompareMetric(metric);
+    if (!seen.has(normalized)) {
+      seen.add(normalized);
+      result.push(normalized);
+    }
+  }
+
+  return result;
+}
+
+function normalizeCompareMetric(metric) {
+  const normalized = String(metric).trim().toLowerCase();
+  const aliases = {
+    quote: "price",
+    realtime: "price",
+    real_time: "price",
+    capital_flow: "capital",
+    capitalflow: "capital",
+    funds: "capital",
+    funding: "capital",
+    fundamentals: "overview",
+    fundamental: "overview",
+    financial: "overview",
+    financials: "overview",
+    technical: "overview",
+    tech: "overview",
+  };
+
+  return aliases[normalized] || metric;
 }
 
 export function redactSecret(text, apiKey) {

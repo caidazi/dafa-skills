@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CaidaziRestClient, redactSecret } from "../src/rest-client.js";
+import {
+  CaidaziRestClient,
+  normalizeToolParameters,
+  redactSecret,
+} from "../src/rest-client.js";
 
 test("lists tools from the REST registry", async () => {
   const requests = [];
@@ -73,6 +77,57 @@ test("calls tools through the REST bridge with bearer auth", async () => {
       parameters: { text: "贵州茅台" },
     }),
   );
+});
+
+test("normalizes common compare_assets argument aliases", () => {
+  assert.deepEqual(
+    normalizeToolParameters("compare_assets", {
+      assets: ["002594.SZ", "300750.SZ"],
+      dimensions: ["fundamentals", "valuation", "technical", "capital_flow"],
+    }),
+    {
+      symbols: ["002594.SZ", "300750.SZ"],
+      metrics: ["overview", "valuation", "capital"],
+    },
+  );
+});
+
+test("normalizes compare_assets metrics aliases directly", () => {
+  assert.deepEqual(
+    normalizeToolParameters("compare_assets", {
+      symbols: ["002594.SZ", "300750.SZ"],
+      metrics: ["quote", "financial", "technical", "funding"],
+    }),
+    {
+      symbols: ["002594.SZ", "300750.SZ"],
+      metrics: ["price", "overview", "capital"],
+    },
+  );
+});
+
+test("sends normalized compare_assets aliases to the backend", async () => {
+  const requests = [];
+  const client = new CaidaziRestClient({
+    baseUrl: "http://example.test",
+    apiKey: "test_api_key",
+    fetchImpl: async (url, init) => {
+      requests.push({ url, init });
+      return jsonResponse({ success: true, result: { items: [] } });
+    },
+  });
+
+  await client.callTool("compare_assets", {
+    assets: ["002594.SZ", "300750.SZ"],
+    dimensions: ["fundamentals", "capital_flow"],
+  });
+
+  assert.deepEqual(JSON.parse(requests[0].init.body), {
+    tool_name: "compare_assets",
+    parameters: {
+      symbols: ["002594.SZ", "300750.SZ"],
+      metrics: ["overview", "capital"],
+    },
+  });
 });
 
 test("rejects calls to tools outside the public package allowlist", async () => {
