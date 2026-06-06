@@ -34,8 +34,8 @@ description: 当用户询问基金、ETF、指数基金的研究、筛选、诊�
 单只基金或 ETF：
 
 1. 识别名称或代码。
-2. 如果用户问当前价格、涨跌幅、盘中表现或实时行情，调用 `get_real_time_record(symbol=...)`。
-3. 调用 `get_asset_overview(symbol=...)`。
+2. 如果用户只问当前价格、涨跌幅、盘中表现或实时行情，调用 `get_real_time_record(symbol=...)` 后停止，不要继续调用 `get_asset_overview`。
+3. 用户需要研究、结构、费用、风险或持仓解释时，调用 `get_asset_overview(symbol=...)`。
 4. 如果用户关心 ETF 持仓结构，调用 `get_etf_constituents(symbol, top_n)`。
 5. 只展示工具返回的规模、跟踪对象、费用、风险、持仓、实时行情和近期变化。
 
@@ -48,7 +48,7 @@ description: 当用户询问基金、ETF、指数基金的研究、筛选、诊�
 
 对比：
 
-1. 两个或更多基金/ETF 时调用 `compare_assets(symbols, metrics, period)`。
+1. 两个或更多基金/ETF 时调用 `compare_assets(symbols, metrics, period)`；`metrics` 只使用 `price`、`valuation`、`capital`、`overview`。
 2. 不要循环调用多个底层工具拼表。
 
 ## 澄清策略

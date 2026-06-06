@@ -7,7 +7,7 @@ description: 当用户想查看或使用自己在财搭子的自选、持仓、�
 
 用这个 skill 通过账户关联 API Key 访问用户在财搭子里的数据资产。它是外部 Agent 回到财搭子主端的桥，不是组合诊断引擎。
 
-路由优先级：用户只是查看自选、持仓或账户资产上下文时使用本 skill；用户要复盘风险暴露时使用 `caidazi-portfolio-review`；用户指定某个返回资产做实时行情或研究时，再交给 `caidazi-asset-research`。
+路由优先级：用户只是查看自选、持仓或账户资产上下文时使用本 skill；用户要复盘风险暴露时使用 `caidazi-portfolio-review`；用户指定某个返回资产只查实时行情时直接调用 MCP 工具 `get_real_time_record`；需要研究解释时再交给 `caidazi-asset-research`。
 
 ## 适用场景
 

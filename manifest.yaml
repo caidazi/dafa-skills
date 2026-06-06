@@ -1,6 +1,6 @@
 schema_version: 1
 bundle: caidazi-skills
-version: 0.2.2
+version: 0.2.3
 repository_role:
   user_install_source: "skills and manifest"
   mcp_install_source: "npm package @caidazi/mcp"
@@ -17,6 +17,7 @@ mcp:
   args:
     - -y
     - "@caidazi/mcp"
+  command_usage: configuration_only_not_query_path
   env:
     CAIDAZI_API_KEY:
       secret: true
@@ -96,6 +97,33 @@ skills:
     - caidazi-macro-research
     - caidazi-portfolio-review
 required_mcp:
+  direct_tool_routes:
+    real_time_asset_quote:
+      user_intent: "single asset latest quote, current price, change percent, volume, amount, or intraday quote"
+      tool: get_real_time_record
+      do_not_load_skill_first: true
+      do_not_use: get_asset_overview
+      stop_after_tool_result: true
+    asset_comparison:
+      user_intent: "compare two or more stocks, ETFs, funds, or indexes"
+      tool: compare_assets
+      canonical_arguments:
+        - symbols
+        - metrics
+        - period
+      metrics_allowed:
+        - price
+        - valuation
+        - capital
+        - overview
+      do_not_use_argument_aliases:
+        - assets
+        - dimensions
+  runtime_usage:
+    use_configured_mcp_tools_directly: true
+    do_not_shell_run_npm_bridge_for_queries: true
+    do_not_handwrite_json_rpc_for_queries: true
+    do_not_put_api_key_in_shell_commands: true
   public_tools:
     - extract_assets
     - get_hot_report
