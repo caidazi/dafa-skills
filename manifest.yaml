@@ -68,6 +68,25 @@ installation:
   skills_only:
     report_as: "Skills-only mode"
     limitation: "No Caidazi tools are available; the Agent can only follow the skill output structure."
+activation:
+  preferred_order:
+    - "Install or update caidazi skills."
+    - "Configure caidazi MCP through the current Agent's documented MCP flow."
+    - "If the current Agent supports MCP, skills, or plugin reload/refresh, run that official refresh in the same session."
+    - "Check MCP tools/list or the Agent tool panel for caidazi tools."
+    - "If get_real_time_record is visible, call it directly for the minimal success query."
+    - "If caidazi tools are still not visible, ask the user to start a new session and retry the same minimal query."
+  same_session:
+    attempt_reload_if_supported: true
+    do_not_claim_universal_hot_reload: true
+    fallback_when_tools_not_visible: "new-session-or-agent-restart"
+  minimal_success:
+    tool: get_real_time_record
+    query: "贵州茅台现在多少钱？"
+    forbidden_fallbacks:
+      - shell-run-npm-bridge
+      - handwritten-json-rpc
+      - api-key-in-command-line
 backend_api:
   base_url: "http://101.126.22.17:5011"
   endpoint_kind: temporary-plain-http
