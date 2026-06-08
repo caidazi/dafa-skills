@@ -34,6 +34,8 @@
 
 安装后请验证 MCP tools/list 能看到 manifest.yaml 里的 public_tools 和 account_tools。
 smoke test 只能调用 smoke_safe_tools；account_tools 只做发现验证。除非我明确询问个人资产，不要读取我的自选、持仓或组合。
+安装后请尽量在当前 session 完成激活：如果当前 Agent 支持 MCP/skills/plugin reload 或 refresh，先执行官方刷新；再通过 tools/list 确认能看到 get_real_time_record；然后直接调用 get_real_time_record 完成最小查询：贵州茅台现在多少钱？
+如果刷新后当前 session 仍看不到 caidazi 工具，请明确告诉我需要新建 session，并在新 session 用同一个最小查询验证。
 回答用户问题时，直接使用已配置的 caidazi MCP tools；不要为普通查询临时启动 @caidazi/mcp、手写 JSON-RPC，或把 API Key 放进命令、日志、临时文件。
 ```
 
@@ -69,6 +71,17 @@ Agent 侧验证：
 2. 确认能看到 `manifest.yaml` 里的 `public_tools` 和 `account_tools`。
 3. smoke test 只调用 `smoke_safe_tools`，不要读取自选、持仓或组合。
 4. 如果 MCP 未连接，先修 MCP 配置；不要为回答某个问题临时拼命令或手写 JSON-RPC。
+
+## 安装后的激活
+
+不同 Agent 对“当前 session 是否能立刻发现新 MCP/skill”的支持不一致。安装 Agent 应按这个顺序处理：
+
+1. 先使用当前 Agent 官方的 reload、refresh 或插件刷新能力。
+2. 刷新后重新检查 MCP tools/list 或工具面板。
+3. 如果已经能看到 `get_real_time_record`，直接调用这个 MCP 工具完成最小查询：`贵州茅台现在多少钱？`
+4. 如果当前 session 仍看不到 `caidazi` 工具，再请用户新建 session 或重启当前 Agent。
+
+无论当前 session 是否支持热刷新，都不要用 bash、npx 临时进程或手写 JSON-RPC 代替正常 MCP 工具调用。
 
 维护者本地开发验证：
 
