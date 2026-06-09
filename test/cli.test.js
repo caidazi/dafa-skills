@@ -74,6 +74,68 @@ test("install copies skills and registers Claude MCP through the host CLI", asyn
   assert.match(logged, /npx -y @caidazi\/mcp@latest/);
 });
 
+test("install registers OpenClaw MCP through the host CLI", async () => {
+  const tmp = await mkdtemp(join(tmpdir(), "caidazi-openclaw-install-"));
+  const binDir = join(tmp, "bin");
+  const skillsDir = join(tmp, "skills");
+  const logPath = join(tmp, "openclaw.log");
+
+  await mkdir(binDir, { recursive: true });
+  await writeFile(
+    join(binDir, "openclaw"),
+    `#!/bin/sh\nprintf '%s\\n' "$*" > "${logPath}"\n`,
+    { mode: 0o755 },
+  );
+
+  const { stdout } = await execFileAsync(
+    process.execPath,
+    ["./bin/caidazi-mcp.js", "install", "--host", "openclaw", "--skills-dir", skillsDir],
+    {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PATH: `${binDir}:${process.env.PATH}`,
+        CAIDAZI_API_KEY: "test_api_key",
+        CAIDAZI_BASE_URL: "http://127.0.0.1:5011",
+        CAIDAZI_ALLOW_HTTP: "true",
+      },
+    },
+  );
+
+  assert.match(stdout, /Registered caidazi MCP with OpenClaw/);
+  await stat(join(skillsDir, "caidazi-asset-research", "SKILL.md"));
+
+  const logged = await readFile(logPath, "utf8");
+  assert.match(logged, /mcp add caidazi --command npx/);
+  assert.match(logged, /--arg -y --arg @caidazi\/mcp@latest/);
+  assert.match(logged, /--env CAIDAZI_API_KEY=test_api_key/);
+});
+
+test("generic install copies skills and prints MCP spec", async () => {
+  const tmp = await mkdtemp(join(tmpdir(), "caidazi-generic-install-"));
+  const skillsDir = join(tmp, "skills");
+
+  const { stdout } = await execFileAsync(
+    process.execPath,
+    ["./bin/caidazi-mcp.js", "install", "--host", "generic", "--skills-dir", skillsDir],
+    {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        CAIDAZI_BASE_URL: "http://127.0.0.1:5011",
+        CAIDAZI_ALLOW_HTTP: "true",
+      },
+    },
+  );
+
+  assert.match(stdout, /Installed Caidazi skills/);
+  assert.match(stdout, /Register this stdio MCP server/);
+  assert.match(stdout, /"command": "npx"/);
+  assert.match(stdout, /"@caidazi\/mcp@latest"/);
+  assert.doesNotMatch(stdout, /test_api_key/);
+  await stat(join(skillsDir, "caidazi-asset-research", "SKILL.md"));
+});
+
 async function createFakeBackend() {
   const server = createServer(async (request, response) => {
     if (request.method === "GET" && request.url === "/api/tools/registered") {

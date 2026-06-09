@@ -17,7 +17,7 @@ const HELP = `Caidazi MCP bridge
 
 Usage:
   caidazi-mcp                    Start the stdio MCP server
-  caidazi-mcp install --host <claude|codex>
+  caidazi-mcp install --host <claude|codex|openclaw|generic>
                                   Install Caidazi skills and register MCP
   caidazi-mcp validate [--probe] Validate backend reachability
 
@@ -59,7 +59,9 @@ async function install({ argv, env }) {
     process.stdout.write(`Installed Caidazi skills to ${skillsDir}\n`);
   }
 
-  if (!options.skipMcp) {
+  if (!options.skipMcp && host === "generic") {
+    printGenericMcpSpec(env);
+  } else if (!options.skipMcp) {
     const apiKey = env.CAIDAZI_API_KEY;
     if (!apiKey) {
       throw new Error("CAIDAZI_API_KEY is required in the environment before registering MCP.");
@@ -70,7 +72,7 @@ async function install({ argv, env }) {
     await registerMcp({ host, apiKey, baseUrl, allowHttp });
   }
 
-  process.stdout.write("Caidazi install finished. If the current Agent session cannot see caidazi tools yet, start a new session.\n");
+  process.stdout.write("Caidazi install finished. If the current Agent session cannot see caidazi tools yet, reload MCP or start a new session.\n");
 }
 
 function parseInstallArgs(argv) {
@@ -100,7 +102,7 @@ function parseInstallArgs(argv) {
   }
 
   if (!options.host) {
-    throw new Error("Missing --host. Use --host claude or --host codex.");
+    throw new Error("Missing --host. Use claude, codex, openclaw, or generic.");
   }
 
   return options;
@@ -114,12 +116,26 @@ function normalizeHost(host) {
   if (["codex", "codex-cli", "codex_cli"].includes(normalized)) {
     return "codex";
   }
-  throw new Error(`Unsupported host: ${host}. Use claude or codex.`);
+  if (["openclaw", "open-claw", "open_claw"].includes(normalized)) {
+    return "openclaw";
+  }
+  if (["generic", "other"].includes(normalized)) {
+    return "generic";
+  }
+  throw new Error(`Unsupported host: ${host}. Use claude, codex, openclaw, or generic.`);
 }
 
 function defaultSkillsDir(host, env) {
   if (host === "claude") {
     return join(homedir(), ".claude", "skills");
+  }
+
+  if (host === "openclaw") {
+    return join(homedir(), ".openclaw", "skills");
+  }
+
+  if (host === "generic") {
+    return join(env.AGENTS_HOME || join(homedir(), ".agents"), "skills");
   }
 
   return join(env.CODEX_HOME || join(homedir(), ".codex"), "skills");
@@ -164,6 +180,29 @@ async function registerMcp({ host, apiKey, baseUrl, allowHttp }) {
     return;
   }
 
+  if (host === "openclaw") {
+    await runHostCommandAllowFailure("openclaw", ["mcp", "unset", "caidazi"]);
+    await runHostCommand("openclaw", [
+      "mcp",
+      "add",
+      "caidazi",
+      "--command",
+      "npx",
+      "--arg",
+      "-y",
+      "--arg",
+      "@caidazi/mcp@latest",
+      "--env",
+      `CAIDAZI_API_KEY=${apiKey}`,
+      "--env",
+      `CAIDAZI_BASE_URL=${baseUrl}`,
+      "--env",
+      `CAIDAZI_ALLOW_HTTP=${allowHttp || ""}`,
+    ], apiKey);
+    process.stdout.write("Registered caidazi MCP with OpenClaw.\n");
+    return;
+  }
+
   await runHostCommandAllowFailure("codex", ["mcp", "remove", "caidazi"]);
   await runHostCommand("codex", [
     "mcp",
@@ -181,6 +220,22 @@ async function registerMcp({ host, apiKey, baseUrl, allowHttp }) {
     "@caidazi/mcp@latest",
   ], apiKey);
   process.stdout.write("Registered caidazi MCP with Codex.\n");
+}
+
+function printGenericMcpSpec(env) {
+  const baseUrl = env.CAIDAZI_BASE_URL || DEFAULT_BASE_URL;
+  const allowHttp = env.CAIDAZI_ALLOW_HTTP || (baseUrl.startsWith("http://") ? "true" : undefined);
+  process.stdout.write(`Register this stdio MCP server in your Agent's official MCP settings:\n${JSON.stringify({
+    name: "caidazi",
+    transport: "stdio",
+    command: "npx",
+    args: ["-y", "@caidazi/mcp@latest"],
+    env: {
+      CAIDAZI_API_KEY: "<set in your Agent secret/env flow>",
+      CAIDAZI_BASE_URL: baseUrl,
+      CAIDAZI_ALLOW_HTTP: allowHttp || "",
+    },
+  }, null, 2)}\n`);
 }
 
 async function runHostCommandAllowFailure(command, args) {

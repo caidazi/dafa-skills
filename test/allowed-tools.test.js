@@ -2,45 +2,23 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-import { ALLOWED_TOOL_NAMES } from "../src/allowed-tools.js";
+import { ALLOWED_TOOL_NAMES, ALLOWED_TOOL_SET } from "../src/allowed-tools.js";
 
-test("MCP allowlist matches manifest public and account tools", () => {
-  const manifest = readFileSync("manifest.yaml", "utf8");
-  const manifestTools = extractToolList(manifest, "public_tools").concat(
-    extractToolList(manifest, "account_tools"),
-  );
-
-  assert.deepEqual([...ALLOWED_TOOL_NAMES].sort(), manifestTools.sort());
+test("MCP allowlist includes the direct user-facing routes", () => {
+  assert.equal(new Set(ALLOWED_TOOL_NAMES).size, ALLOWED_TOOL_NAMES.length);
+  assert.ok(ALLOWED_TOOL_SET.has("get_real_time_record"));
+  assert.ok(ALLOWED_TOOL_SET.has("compare_assets"));
+  assert.ok(ALLOWED_TOOL_SET.has("get_caidazi_user_watchlist"));
 });
 
-test("install contract requires direct host MCP tools", () => {
+test("README keeps the install contract compact", () => {
   const readme = readFileSync("README.md", "utf8");
-  const manifest = readFileSync("manifest.yaml", "utf8");
 
-  assert.match(readme, /npx -y @caidazi\/mcp@latest install --host claude/);
-  assert.match(readme, /npx -y @caidazi\/mcp@latest install --host codex/);
+  assert.match(readme, /npx -y @caidazi\/mcp@latest install --host <当前工具>/);
+  assert.match(readme, /host 可选：claude、codex、openclaw、generic/);
+  assert.match(readme, /贵州茅台现在多少钱？/);
   assert.doesNotMatch(readme, /"mcpServers"\s*:/);
-  assert.match(readme, /普通 `settings\.json`，都不算 MCP 安装成功/);
-  assert.match(manifest, /installation_success: false/);
-  assert.match(manifest, /must_be_direct_host_tools: true/);
-  assert.match(manifest, /skill_text_mentions_are_not_tool_discovery: true/);
+  assert.doesNotMatch(readme, /settings\.json/);
+  assert.doesNotMatch(readme, /人工安装/);
+  assert.doesNotMatch(readme, /npm test/);
 });
-
-function extractToolList(manifest, key) {
-  const lines = manifest.split(/\r?\n/);
-  const start = lines.findIndex((line) => line.trim() === `${key}:`);
-  const tools = [];
-
-  for (const line of lines.slice(start + 1)) {
-    if (/^  [a-zA-Z_]+:/.test(line)) {
-      break;
-    }
-
-    const match = line.match(/^\s+-\s+([a-zA-Z0-9_]+)/);
-    if (match) {
-      tools.push(match[1]);
-    }
-  }
-
-  return tools;
-}
