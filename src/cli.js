@@ -53,6 +53,9 @@ async function install({ argv, env }) {
   const options = parseInstallArgs(argv);
   const host = normalizeHost(options.host);
   const skillsDir = options.skillsDir || defaultSkillsDir(host, env);
+  const mcpConfig = !options.skipMcp && host !== "generic"
+    ? readMcpRegistrationConfig(env)
+    : null;
 
   if (!options.skipSkills) {
     await installSkills(skillsDir);
@@ -62,17 +65,25 @@ async function install({ argv, env }) {
   if (!options.skipMcp && host === "generic") {
     printGenericMcpSpec(env);
   } else if (!options.skipMcp) {
-    const apiKey = env.CAIDAZI_API_KEY;
-    if (!apiKey) {
-      throw new Error("CAIDAZI_API_KEY is required in the environment before registering MCP.");
-    }
-
-    const baseUrl = env.CAIDAZI_BASE_URL || DEFAULT_BASE_URL;
-    const allowHttp = env.CAIDAZI_ALLOW_HTTP || (baseUrl.startsWith("http://") ? "true" : undefined);
-    await registerMcp({ host, apiKey, baseUrl, allowHttp });
+    await registerMcp({ host, ...mcpConfig });
   }
 
   process.stdout.write("Caidazi install finished. If the current Agent session cannot see caidazi tools yet, reload MCP or start a new session.\n");
+}
+
+function readMcpRegistrationConfig(env) {
+  const apiKey = env.CAIDAZI_API_KEY;
+  if (!apiKey) {
+    throw new Error("CAIDAZI_API_KEY is required in the environment before registering MCP.");
+  }
+
+  const baseUrl = env.CAIDAZI_BASE_URL || DEFAULT_BASE_URL;
+  const allowHttp = env.CAIDAZI_ALLOW_HTTP;
+  if (baseUrl.startsWith("http://") && allowHttp !== "true") {
+    throw new Error("Plain HTTP backend requires explicit CAIDAZI_ALLOW_HTTP=true before registering MCP.");
+  }
+
+  return { apiKey, baseUrl, allowHttp };
 }
 
 function parseInstallArgs(argv) {
@@ -224,7 +235,7 @@ async function registerMcp({ host, apiKey, baseUrl, allowHttp }) {
 
 function printGenericMcpSpec(env) {
   const baseUrl = env.CAIDAZI_BASE_URL || DEFAULT_BASE_URL;
-  const allowHttp = env.CAIDAZI_ALLOW_HTTP || (baseUrl.startsWith("http://") ? "true" : undefined);
+  const allowHttp = env.CAIDAZI_ALLOW_HTTP || "";
   process.stdout.write(`Register this stdio MCP server in your Agent's official MCP settings:\n${JSON.stringify({
     name: "caidazi",
     transport: "stdio",

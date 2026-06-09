@@ -4,7 +4,31 @@ import test from "node:test";
 
 import { ALLOWED_TOOL_NAMES, ALLOWED_TOOL_SET } from "../src/allowed-tools.js";
 
+const EXPECTED_TOOL_NAMES = [
+  "extract_assets",
+  "get_hot_report",
+  "get_real_time_market_summary",
+  "get_market_analysis",
+  "get_macro_analysis",
+  "get_asset_overview",
+  "get_real_time_record",
+  "analyze_capital_flow",
+  "analyze_technical",
+  "analyze_fundamentals_financial",
+  "analyze_fundamentals_valuation",
+  "investment_search_pro",
+  "compare_assets",
+  "screen_stocks",
+  "get_etf_constituents",
+  "get_index_related_etfs",
+  "get_stock_belongings",
+  "get_caidazi_user_watchlist",
+  "get_caidazi_positions_summary",
+  "get_caidazi_portfolio_snapshot",
+];
+
 test("MCP allowlist includes the direct user-facing routes", () => {
+  assert.deepEqual(ALLOWED_TOOL_NAMES, EXPECTED_TOOL_NAMES);
   assert.equal(new Set(ALLOWED_TOOL_NAMES).size, ALLOWED_TOOL_NAMES.length);
   assert.ok(ALLOWED_TOOL_SET.has("get_real_time_record"));
   assert.ok(ALLOWED_TOOL_SET.has("compare_assets"));
