@@ -21,9 +21,11 @@
 请以 manifest.yaml 为安装真源：
 1. 从这个 repo 安装 caidazi-* skills。
 2. 不要从这个 repo 运行 MCP server；MCP 通过 npm 包 @caidazi/mcp 安装。
-3. 配置 caidazi MCP，使用 stdio：
+3. 用当前 Agent 官方 MCP 安装入口注册 caidazi MCP；不要猜配置文件路径，不要把 mcpServers 写进普通 settings.json。
+  server name: caidazi
+  transport: stdio
   command: npx
-  args: -y @caidazi/mcp
+  args: -y @caidazi/mcp@latest
 
 请用当前 Agent 支持的安全 secret/env 方式设置 CAIDAZI_API_KEY。
 不要打印、回显或写入仓库。
@@ -32,45 +34,62 @@
   CAIDAZI_BASE_URL=http://101.126.22.17:5011
   CAIDAZI_ALLOW_HTTP=true
 
-安装后请验证 MCP tools/list 能看到 manifest.yaml 里的 public_tools 和 account_tools。
+安装后请验证当前 Agent 的 MCP tools/list、/mcp 面板或等价工具面板能看到 caidazi，并能直接看到 get_real_time_record。
+只安装 skills、只写入 settings/env、或只让 skill 文本里提到工具名，都不算安装成功。
 smoke test 只能调用 smoke_safe_tools；account_tools 只做发现验证。除非我明确询问个人资产，不要读取我的自选、持仓或组合。
 安装后请尽量在当前 session 完成激活：如果当前 Agent 支持 MCP/skills/plugin reload 或 refresh，先执行官方刷新；再通过 tools/list 确认能看到 get_real_time_record；然后直接调用 get_real_time_record 完成最小查询：贵州茅台现在多少钱？
 如果刷新后当前 session 仍看不到 caidazi 工具，请明确告诉我需要新建 session，并在新 session 用同一个最小查询验证。
 回答用户问题时，直接使用已配置的 caidazi MCP tools；不要为普通查询临时启动 @caidazi/mcp、手写 JSON-RPC，或把 API Key 放进命令、日志、临时文件。
 ```
 
-## MCP 通过 npm 配置
+## MCP 通过 npm 安装
 
-不同 Agent 的 MCP 配置文件位置不同，请使用该 Agent 官方支持的配置方式。通用形状如下：
+`@caidazi/mcp` 是标准 stdio MCP server。npm 只负责提供这个 server，真正让工具进入对话工具列表，必须通过当前 Agent 官方支持的 MCP 安装入口完成。
 
-这里的 `command`/`args` 是 MCP server 配置，由 Agent 在后台管理；不是让 Agent 在回答用户问题时手动运行命令。
+通用 server spec：
 
-```json
-{
-  "mcpServers": {
-    "caidazi": {
-      "command": "npx",
-      "args": ["-y", "@caidazi/mcp"],
-      "env": {
-        "CAIDAZI_API_KEY": "<通过 secret/env 安全注入>",
-        "CAIDAZI_BASE_URL": "http://101.126.22.17:5011",
-        "CAIDAZI_ALLOW_HTTP": "true"
-      }
-    }
-  }
-}
+```text
+name: caidazi
+transport: stdio
+command: npx
+args: -y @caidazi/mcp@latest
+env:
+  CAIDAZI_API_KEY=<通过当前 Agent 的 secret/env 安全注入>
+  CAIDAZI_BASE_URL=http://101.126.22.17:5011
+  CAIDAZI_ALLOW_HTTP=true
 ```
 
 `CAIDAZI_ALLOW_HTTP=true` 只用于当前可信测试后端。后端切到 HTTPS 后应移除。
+
+如果当前 Agent 有官方 CLI，请优先让 Agent 使用 CLI 注册，而不是手写配置文件。例如：
+
+```text
+# Claude Code
+claude mcp add --scope user caidazi \
+  -e CAIDAZI_API_KEY=<你的 key> \
+  -e CAIDAZI_BASE_URL=http://101.126.22.17:5011 \
+  -e CAIDAZI_ALLOW_HTTP=true \
+  -- npx -y @caidazi/mcp@latest
+
+# Codex CLI
+codex mcp add caidazi \
+  --env CAIDAZI_API_KEY=<你的 key> \
+  --env CAIDAZI_BASE_URL=http://101.126.22.17:5011 \
+  --env CAIDAZI_ALLOW_HTTP=true \
+  -- npx -y @caidazi/mcp@latest
+```
+
+只有当当前 Agent 官方文档明确要求编辑 `mcp.json`、`.mcp.json` 或等价 MCP 配置文件时，才把上面的 server spec 转成 JSON。不要把 `mcpServers` 写进普通 `settings.json` 充当安装完成。
 
 ## 验证
 
 Agent 侧验证：
 
 1. 通过当前 Agent 的 MCP tools/list 或工具面板确认 `caidazi` 已连接。
-2. 确认能看到 `manifest.yaml` 里的 `public_tools` 和 `account_tools`。
+2. 确认能直接看到 `get_real_time_record`、`compare_assets` 等 MCP tools；不是只在 skill 文本里看到这些名字。
 3. smoke test 只调用 `smoke_safe_tools`，不要读取自选、持仓或组合。
 4. 如果 MCP 未连接，先修 MCP 配置；不要为回答某个问题临时拼命令或手写 JSON-RPC。
+5. 如果 tools/list 看不到 `caidazi`，安装失败；不要回退成“通过 skill 调用 MCP”。
 
 ## 安装后的激活
 
@@ -134,4 +153,4 @@ npm run validate
 
 ## English Note
 
-Caidazi skills are installed from this repo. Caidazi MCP is configured from the npm package `@caidazi/mcp` as a stdio MCP server. For the current test backend, set `CAIDAZI_BASE_URL=http://101.126.22.17:5011` and `CAIDAZI_ALLOW_HTTP=true`. Keep `CAIDAZI_API_KEY` in your Agent's secure secret/env flow.
+Caidazi skills are installed from this repo. Caidazi MCP is configured from the npm package `@caidazi/mcp` as a stdio MCP server through the current Agent's official MCP install flow, not by guessing a generic settings file. For the current test backend, set `CAIDAZI_BASE_URL=http://101.126.22.17:5011` and `CAIDAZI_ALLOW_HTTP=true`. Keep `CAIDAZI_API_KEY` in your Agent's secure secret/env flow.

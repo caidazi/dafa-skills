@@ -1,6 +1,6 @@
 schema_version: 1
 bundle: caidazi-skills
-version: 0.2.3
+version: 0.2.4
 repository_role:
   user_install_source: "skills and manifest"
   mcp_install_source: "npm package @caidazi/mcp"
@@ -49,9 +49,8 @@ installation:
   supported_modes:
     - stdio-mcp-bridge
     - hosted-mcp
-    - skills-only
   stdio_mcp_bridge:
-    config_instruction: "Use the current Agent's documented MCP configuration flow. Do not guess legacy config paths."
+    config_instruction: "Use the current Agent's documented MCP installation surface, such as its MCP CLI, UI, plugin system, or documented mcp.json path. Do not guess generic settings paths."
     server_name_ref: mcp.server_name
     transport_ref: mcp.transport
     command_ref: mcp.command
@@ -60,21 +59,39 @@ installation:
     backend_env_ref: CAIDAZI_BASE_URL
     allow_http_env_ref: CAIDAZI_ALLOW_HTTP
     package_ref: mcp.npm_package
-    success_condition: "The current Agent discovers the tools listed in required_mcp.public_tools and required_mcp.account_tools through MCP."
+    success_condition: "The current Agent's MCP tools/list, /mcp panel, or equivalent tool UI directly shows caidazi tools, including get_real_time_record, without loading a Caidazi skill first."
+    failure_conditions:
+      - "Only caidazi-* skills are installed."
+      - "The MCP package validates from a shell, but the Agent's tool list does not show caidazi."
+      - "A generic mcpServers object was written to an unsupported settings file."
+      - "The Agent can only mention get_real_time_record after reading a skill file."
   hosted_mcp:
     enabled: false
     endpoint_ref: mcp.hosted_endpoint
     enable_when: "An official HTTPS MCP transport endpoint is deployed and passes health checks."
   skills_only:
     report_as: "Skills-only mode"
-    limitation: "No Caidazi tools are available; the Agent can only follow the skill output structure."
+    installation_success: false
+    limitation: "No Caidazi tools are available; the Agent can only follow the skill output structure. Do not report this as a successful MCP installation."
+  host_install_rules:
+    prefer_official_host_cli_or_ui: true
+    do_not_guess_settings_files: true
+    do_not_write_generic_mcpservers_to_plain_settings_json: true
+    known_host_examples:
+      claude_code:
+        install_command_shape: "claude mcp add --scope user caidazi -e CAIDAZI_API_KEY=<secret> -e CAIDAZI_BASE_URL=http://101.126.22.17:5011 -e CAIDAZI_ALLOW_HTTP=true -- npx -y @caidazi/mcp@latest"
+        verify_command_shape: "claude mcp get caidazi && use /mcp inside Claude Code"
+        invalid_path_example: "~/.claude/settings.json mcpServers"
+      codex_cli:
+        install_command_shape: "codex mcp add caidazi --env CAIDAZI_API_KEY=<secret> --env CAIDAZI_BASE_URL=http://101.126.22.17:5011 --env CAIDAZI_ALLOW_HTTP=true -- npx -y @caidazi/mcp@latest"
+        verify_command_shape: "codex mcp get caidazi"
 activation:
   preferred_order:
     - "Install or update caidazi skills."
     - "Configure caidazi MCP through the current Agent's documented MCP flow."
     - "If the current Agent supports MCP, skills, or plugin reload/refresh, run that official refresh in the same session."
     - "Check MCP tools/list or the Agent tool panel for caidazi tools."
-    - "If get_real_time_record is visible, call it directly for the minimal success query."
+    - "If get_real_time_record is directly visible as a host MCP tool, call it directly for the minimal success query."
     - "If caidazi tools are still not visible, ask the user to start a new session and retry the same minimal query."
   same_session:
     attempt_reload_if_supported: true
@@ -191,6 +208,8 @@ verification:
     health_check_required: true
     agent_health_check_required: true
     tools_discovery_required: true
+    must_be_direct_host_tools: true
+    skill_text_mentions_are_not_tool_discovery: true
   backend_bridge:
     test_registry_ref: backend_api.tool_registry_path
     tool_call_ref: backend_api.tool_call_path

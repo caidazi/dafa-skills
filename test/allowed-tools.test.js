@@ -13,6 +13,18 @@ test("MCP allowlist matches manifest public and account tools", () => {
   assert.deepEqual([...ALLOWED_TOOL_NAMES].sort(), manifestTools.sort());
 });
 
+test("install contract requires direct host MCP tools", () => {
+  const readme = readFileSync("README.md", "utf8");
+  const manifest = readFileSync("manifest.yaml", "utf8");
+
+  assert.doesNotMatch(readme, /"mcpServers"\s*:/);
+  assert.match(readme, /不要把 `mcpServers` 写进普通 `settings\.json`/);
+  assert.match(readme, /tools\/list 看不到 `caidazi`，安装失败/);
+  assert.match(manifest, /installation_success: false/);
+  assert.match(manifest, /must_be_direct_host_tools: true/);
+  assert.match(manifest, /skill_text_mentions_are_not_tool_discovery: true/);
+});
+
 function extractToolList(manifest, key) {
   const lines = manifest.split(/\r?\n/);
   const start = lines.findIndex((line) => line.trim() === `${key}:`);
