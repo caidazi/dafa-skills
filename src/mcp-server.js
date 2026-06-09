@@ -9,7 +9,7 @@ import { loadConfig } from "./config.js";
 import { CaidaziRestClient } from "./rest-client.js";
 import { createMcpTool, resultToContent } from "./tool-schema.js";
 
-const PACKAGE_VERSION = "0.2.4";
+const PACKAGE_VERSION = "0.2.5";
 
 export function createServer({ client, version = PACKAGE_VERSION }) {
   const server = new Server(

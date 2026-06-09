@@ -1,6 +1,6 @@
 {
   "name": "@caidazi/mcp",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Caidazi MCP stdio bridge for generic AI agents.",
   "type": "module",
   "keywords": [

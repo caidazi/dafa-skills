@@ -1,6 +1,6 @@
 schema_version: 1
 bundle: caidazi-skills
-version: 0.2.4
+version: 0.2.5
 repository_role:
   user_install_source: "skills and manifest"
   mcp_install_source: "npm package @caidazi/mcp"
@@ -16,7 +16,7 @@ mcp:
   command: npx
   args:
     - -y
-    - "@caidazi/mcp"
+    - "@caidazi/mcp@latest"
   command_usage: configuration_only_not_query_path
   env:
     CAIDAZI_API_KEY:
@@ -45,10 +45,21 @@ mcp:
     secret: true
     redact: true
 installation:
-  default_mode: stdio-mcp-bridge
+  default_mode: npm-installer
   supported_modes:
+    - npm-installer
     - stdio-mcp-bridge
     - hosted-mcp
+  npm_installer:
+    command: "npx -y @caidazi/mcp@latest install --host <claude|codex>"
+    installs:
+      - caidazi skills
+      - caidazi stdio MCP server
+    env_required:
+      - CAIDAZI_API_KEY
+      - CAIDAZI_BASE_URL
+      - CAIDAZI_ALLOW_HTTP
+    success_condition: "The current Agent's MCP tools/list, /mcp panel, or equivalent tool UI directly shows caidazi tools, including get_real_time_record."
   stdio_mcp_bridge:
     config_instruction: "Use the current Agent's documented MCP installation surface, such as its MCP CLI, UI, plugin system, or documented mcp.json path. Do not guess generic settings paths."
     server_name_ref: mcp.server_name
