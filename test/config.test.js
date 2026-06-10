@@ -7,13 +7,12 @@ test("loads default backend bridge config from environment", () => {
   const config = loadConfig({
     env: {
       CAIDAZI_API_KEY: "test_api_key",
-      CAIDAZI_ALLOW_HTTP: "true",
     },
     argv: [],
   });
 
   assert.equal(config.apiKey, "test_api_key");
-  assert.equal(config.baseUrl, "http://101.126.22.17:5011");
+  assert.equal(config.baseUrl, "https://mcp.zhicepilot.com");
   assert.equal(config.timeoutMs, 30000);
 });
 

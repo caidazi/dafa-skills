@@ -10,9 +10,7 @@
 请帮我安装财搭子。
 
 1. 用当前 Agent 支持的 env/secret 方式设置 CAIDAZI_API_KEY，不要打印或写入项目文件。
-2. 当前先使用测试环境：
-   CAIDAZI_BASE_URL=http://101.126.22.17:5011
-   CAIDAZI_ALLOW_HTTP=true
+2. 默认连接生产环境：https://mcp.zhicepilot.com/
 3. 运行：
    npx -y @caidazi/mcp@latest install --host <当前工具>
    host 可选：claude、codex、openclaw、generic

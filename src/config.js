@@ -1,4 +1,4 @@
-const DEFAULT_BASE_URL = "http://101.126.22.17:5011";
+const DEFAULT_BASE_URL = "https://mcp.zhicepilot.com/";
 const DEFAULT_TIMEOUT_MS = 30000;
 
 export function loadConfig({ env = process.env, argv = process.argv.slice(2) } = {}) {

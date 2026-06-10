@@ -133,8 +133,8 @@ test("install registers Codex MCP through the host CLI", async () => {
         ...process.env,
         PATH: `${binDir}:${process.env.PATH}`,
         CAIDAZI_API_KEY: "test_api_key",
-        CAIDAZI_BASE_URL: "http://127.0.0.1:5011",
-        CAIDAZI_ALLOW_HTTP: "true",
+        CAIDAZI_BASE_URL: "",
+        CAIDAZI_ALLOW_HTTP: "",
       },
     },
   );
@@ -144,6 +144,8 @@ test("install registers Codex MCP through the host CLI", async () => {
 
   const logged = await readFile(logPath, "utf8");
   assert.match(logged, /mcp add caidazi --env CAIDAZI_API_KEY=test_api_key/);
+  assert.match(logged, /--env CAIDAZI_BASE_URL=https:\/\/mcp\.zhicepilot\.com\//);
+  assert.doesNotMatch(logged, /CAIDAZI_ALLOW_HTTP/);
   assert.match(logged, /-- npx -y @caidazi\/mcp@latest/);
 });
 
