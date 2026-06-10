@@ -11,7 +11,7 @@ import { CaidaziRestClient } from "./rest-client.js";
 
 const execFileAsync = promisify(execFile);
 const PACKAGE_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
-const DEFAULT_BASE_URL = "http://101.126.22.17:5011";
+const DEFAULT_BASE_URL = "https://mcp.zhicepilot.com/";
 
 const HELP = `Caidazi MCP bridge
 
@@ -23,8 +23,8 @@ Usage:
 
 Environment:
   CAIDAZI_API_KEY       Required bearer token
-  CAIDAZI_BASE_URL      Optional backend base URL (default: http://101.126.22.17:5011)
-  CAIDAZI_ALLOW_HTTP    Required as "true" when CAIDAZI_BASE_URL uses http://
+  CAIDAZI_BASE_URL      Optional backend base URL (default: https://mcp.zhicepilot.com/)
+  CAIDAZI_ALLOW_HTTP    Required only when CAIDAZI_BASE_URL uses http://
   CAIDAZI_TIMEOUT_MS    Optional request timeout in milliseconds (default: 30000)
 `;
 
@@ -176,12 +176,7 @@ async function registerMcp({ host, apiKey, baseUrl, allowHttp }) {
       "--scope",
       "user",
       "caidazi",
-      "-e",
-      `CAIDAZI_API_KEY=${apiKey}`,
-      "-e",
-      `CAIDAZI_BASE_URL=${baseUrl}`,
-      "-e",
-      `CAIDAZI_ALLOW_HTTP=${allowHttp || ""}`,
+      ...mcpEnvArgs("-e", { CAIDAZI_API_KEY: apiKey, CAIDAZI_BASE_URL: baseUrl, CAIDAZI_ALLOW_HTTP: allowHttp }),
       "--",
       "npx",
       "-y",
@@ -203,12 +198,7 @@ async function registerMcp({ host, apiKey, baseUrl, allowHttp }) {
       "-y",
       "--arg",
       "@caidazi/mcp@latest",
-      "--env",
-      `CAIDAZI_API_KEY=${apiKey}`,
-      "--env",
-      `CAIDAZI_BASE_URL=${baseUrl}`,
-      "--env",
-      `CAIDAZI_ALLOW_HTTP=${allowHttp || ""}`,
+      ...mcpEnvArgs("--env", { CAIDAZI_API_KEY: apiKey, CAIDAZI_BASE_URL: baseUrl, CAIDAZI_ALLOW_HTTP: allowHttp }),
     ], apiKey);
     process.stdout.write("Registered caidazi MCP with OpenClaw.\n");
     return;
@@ -219,12 +209,7 @@ async function registerMcp({ host, apiKey, baseUrl, allowHttp }) {
     "mcp",
     "add",
     "caidazi",
-    "--env",
-    `CAIDAZI_API_KEY=${apiKey}`,
-    "--env",
-    `CAIDAZI_BASE_URL=${baseUrl}`,
-    "--env",
-    `CAIDAZI_ALLOW_HTTP=${allowHttp || ""}`,
+    ...mcpEnvArgs("--env", { CAIDAZI_API_KEY: apiKey, CAIDAZI_BASE_URL: baseUrl, CAIDAZI_ALLOW_HTTP: allowHttp }),
     "--",
     "npx",
     "-y",
@@ -236,17 +221,27 @@ async function registerMcp({ host, apiKey, baseUrl, allowHttp }) {
 function printGenericMcpSpec(env) {
   const baseUrl = env.CAIDAZI_BASE_URL || DEFAULT_BASE_URL;
   const allowHttp = env.CAIDAZI_ALLOW_HTTP || "";
+  const specEnv = {
+    CAIDAZI_API_KEY: "<set in your Agent secret/env flow>",
+    CAIDAZI_BASE_URL: baseUrl,
+  };
+  if (allowHttp) {
+    specEnv.CAIDAZI_ALLOW_HTTP = allowHttp;
+  }
+
   process.stdout.write(`Register this stdio MCP server in your Agent's official MCP settings:\n${JSON.stringify({
     name: "caidazi",
     transport: "stdio",
     command: "npx",
     args: ["-y", "@caidazi/mcp@latest"],
-    env: {
-      CAIDAZI_API_KEY: "<set in your Agent secret/env flow>",
-      CAIDAZI_BASE_URL: baseUrl,
-      CAIDAZI_ALLOW_HTTP: allowHttp || "",
-    },
+    env: specEnv,
   }, null, 2)}\n`);
+}
+
+function mcpEnvArgs(flag, env) {
+  return Object.entries(env).flatMap(([name, value]) => (
+    value ? [flag, `${name}=${value}`] : []
+  ));
 }
 
 async function runHostCommandAllowFailure(command, args) {
