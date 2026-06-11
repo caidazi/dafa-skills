@@ -28,6 +28,8 @@ description: 当用户希望基于财搭子自选、持仓或组合快照做摘�
 - `get_hot_report`
 - `investment_search_pro`
 
+如果这些工具没有出现在当前可调用工具列表里，先使用当前 Agent 的 MCP 工具发现、刷新或延迟加载机制查找 `caidazi`。如果运行环境提供 `tool_search` 这类工具发现能力，必须先搜索 `caidazi` 或上述工具名；只有工具发现失败，或宿主 MCP 工具列表确认没有 `caidazi` 时，才说明 MCP 尚未连接。
+
 ## 流程
 
 1. 调用 `get_caidazi_portfolio_snapshot(scope="all", mask_sensitive=true)`。

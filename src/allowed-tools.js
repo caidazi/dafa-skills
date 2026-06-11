@@ -19,6 +19,9 @@ export const ALLOWED_TOOL_NAMES = Object.freeze([
   "get_caidazi_user_watchlist",
   "get_caidazi_positions_summary",
   "get_caidazi_portfolio_snapshot",
+  "add_watchlist",
+  "remove_watchlist",
+  "get_monitor_tasks",
 ]);
 
 export const ALLOWED_TOOL_SET = new Set(ALLOWED_TOOL_NAMES);

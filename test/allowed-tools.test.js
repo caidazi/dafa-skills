@@ -25,6 +25,9 @@ const EXPECTED_TOOL_NAMES = [
   "get_caidazi_user_watchlist",
   "get_caidazi_positions_summary",
   "get_caidazi_portfolio_snapshot",
+  "add_watchlist",
+  "remove_watchlist",
+  "get_monitor_tasks",
 ];
 
 test("MCP allowlist includes the direct user-facing routes", () => {
@@ -33,6 +36,9 @@ test("MCP allowlist includes the direct user-facing routes", () => {
   assert.ok(ALLOWED_TOOL_SET.has("get_real_time_record"));
   assert.ok(ALLOWED_TOOL_SET.has("compare_assets"));
   assert.ok(ALLOWED_TOOL_SET.has("get_caidazi_user_watchlist"));
+  assert.ok(ALLOWED_TOOL_SET.has("add_watchlist"));
+  assert.ok(ALLOWED_TOOL_SET.has("remove_watchlist"));
+  assert.ok(ALLOWED_TOOL_SET.has("get_monitor_tasks"));
 });
 
 test("README keeps the install contract compact", () => {

@@ -68,7 +68,8 @@ async function install({ argv, env }) {
     await registerMcp({ host, ...mcpConfig });
   }
 
-  process.stdout.write("Caidazi install finished. If the current Agent session cannot see caidazi tools yet, reload MCP or start a new session.\n");
+  process.stdout.write("Caidazi install finished. You can now ask for quotes, market pulse, asset research, stock screening, finance search, watchlist/positions/portfolio context, watchlist add/remove, and existing monitor tasks.\n");
+  process.stdout.write("If the current Agent session cannot see caidazi tools yet, reload MCP or start a new session, then verify with: 贵州茅台现在多少钱？\n");
 }
 
 function readMcpRegistrationConfig(env) {
