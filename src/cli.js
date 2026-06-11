@@ -26,6 +26,8 @@ Environment:
   CAIDAZI_BASE_URL      Optional backend base URL (default: https://mcp.zhicepilot.com/)
   CAIDAZI_ALLOW_HTTP    Required only when CAIDAZI_BASE_URL uses http://
   CAIDAZI_TIMEOUT_MS    Optional request timeout in milliseconds (default: 30000)
+  CAIDAZI_MCP_NO_UPDATE_NOTIFIER
+                        Optional opt-out for update notices in MCP results
 `;
 
 export async function main({ argv = process.argv.slice(2), env = process.env } = {}) {
@@ -177,7 +179,7 @@ async function registerMcp({ host, apiKey, baseUrl, allowHttp }) {
       "--scope",
       "user",
       "caidazi",
-      ...mcpEnvArgs("-e", { CAIDAZI_API_KEY: apiKey, CAIDAZI_BASE_URL: baseUrl, CAIDAZI_ALLOW_HTTP: allowHttp }),
+      ...mcpEnvArgs("-e", { CAIDAZI_API_KEY: apiKey, CAIDAZI_BASE_URL: baseUrl, CAIDAZI_ALLOW_HTTP: allowHttp, CAIDAZI_MCP_HOST: host }),
       "--",
       "npx",
       "-y",
@@ -199,7 +201,7 @@ async function registerMcp({ host, apiKey, baseUrl, allowHttp }) {
       "-y",
       "--arg",
       "@caidazi/mcp@latest",
-      ...mcpEnvArgs("--env", { CAIDAZI_API_KEY: apiKey, CAIDAZI_BASE_URL: baseUrl, CAIDAZI_ALLOW_HTTP: allowHttp }),
+      ...mcpEnvArgs("--env", { CAIDAZI_API_KEY: apiKey, CAIDAZI_BASE_URL: baseUrl, CAIDAZI_ALLOW_HTTP: allowHttp, CAIDAZI_MCP_HOST: host }),
     ], apiKey);
     process.stdout.write("Registered caidazi MCP with OpenClaw.\n");
     return;
@@ -210,7 +212,7 @@ async function registerMcp({ host, apiKey, baseUrl, allowHttp }) {
     "mcp",
     "add",
     "caidazi",
-    ...mcpEnvArgs("--env", { CAIDAZI_API_KEY: apiKey, CAIDAZI_BASE_URL: baseUrl, CAIDAZI_ALLOW_HTTP: allowHttp }),
+    ...mcpEnvArgs("--env", { CAIDAZI_API_KEY: apiKey, CAIDAZI_BASE_URL: baseUrl, CAIDAZI_ALLOW_HTTP: allowHttp, CAIDAZI_MCP_HOST: host }),
     "--",
     "npx",
     "-y",
@@ -225,6 +227,7 @@ function printGenericMcpSpec(env) {
   const specEnv = {
     CAIDAZI_API_KEY: "<set in your Agent secret/env flow>",
     CAIDAZI_BASE_URL: baseUrl,
+    CAIDAZI_MCP_HOST: "generic",
   };
   if (allowHttp) {
     specEnv.CAIDAZI_ALLOW_HTTP = allowHttp;

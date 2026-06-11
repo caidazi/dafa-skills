@@ -1,10 +1,35 @@
 export function createMcpTool(toolInfo) {
   return {
     name: toolInfo.name,
-    description: toolInfo.description || toolInfo.name,
+    description: describeTool(toolInfo),
     inputSchema: parseInputDetailToSchema(toolInfo.input_detail),
   };
 }
+
+function describeTool(toolInfo) {
+  const description = toolInfo.description || toolInfo.name;
+  const boundary = ACCOUNT_TOOL_BOUNDARIES[toolInfo.name];
+  if (!boundary) {
+    return description;
+  }
+
+  return `${description} 边界：${boundary}`;
+}
+
+const ACCOUNT_TOOL_BOUNDARIES = Object.freeze({
+  get_caidazi_user_watchlist:
+    "仅读取当前 API Key 绑定的财搭子 App 自选池，不代表券商账户或其他平台自选。",
+  get_caidazi_positions_summary:
+    "仅读取当前 API Key 绑定的财搭子 App 中已授权的持仓摘要，不代表完整券商账户。",
+  get_caidazi_portfolio_snapshot:
+    "仅读取当前 API Key 绑定的财搭子 App 自选、持仓和组合快照。",
+  add_watchlist:
+    "仅向当前 API Key 绑定的财搭子 App 自选池添加标的，不用于其他平台自选、持仓或交易。",
+  remove_watchlist:
+    "仅从当前 API Key 绑定的财搭子 App 自选池移除标的，不用于其他平台自选、持仓或交易。",
+  get_monitor_tasks:
+    "仅只读查询当前 API Key 绑定的财搭子 App 已有监控任务，不创建、订阅或删除监控任务。",
+});
 
 export function parseInputDetailToSchema(inputDetail) {
   const properties = {};
@@ -36,17 +61,36 @@ export function parseInputDetailToSchema(inputDetail) {
   };
 }
 
-export function resultToContent(result) {
-  if (typeof result === "string") {
-    return [{ type: "text", text: result }];
+export function resultToContent(result, notice = null) {
+  const payload = notice ? withNotice(result, notice) : result;
+
+  if (typeof payload === "string") {
+    return [{ type: "text", text: payload }];
   }
 
   return [
     {
       type: "text",
-      text: JSON.stringify(result, null, 2),
+      text: JSON.stringify(payload, null, 2),
     },
   ];
+}
+
+function withNotice(result, notice) {
+  if (result && typeof result === "object" && !Array.isArray(result)) {
+    return {
+      ...result,
+      _notice: {
+        ...(result._notice || {}),
+        ...notice,
+      },
+    };
+  }
+
+  return {
+    data: result,
+    _notice: notice,
+  };
 }
 
 function parseMarkdownRows(inputDetail = "") {
