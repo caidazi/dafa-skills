@@ -13,7 +13,19 @@ function describeTool(toolInfo) {
     return description;
   }
 
+  if (hasCaidaziAccountBoundary(description)) {
+    return description;
+  }
+
   return `${description} 边界：${boundary}`;
+}
+
+function hasCaidaziAccountBoundary(description) {
+  return (
+    description.includes("当前 API Key 绑定的财搭子 App") ||
+    description.includes("不代表券商账户") ||
+    description.includes("不用于其他平台")
+  );
 }
 
 const ACCOUNT_TOOL_BOUNDARIES = Object.freeze({

@@ -28,10 +28,10 @@ description: 当用户询问股票、ETF、基金、指数的快速研究、深�
 - `extract_assets`
 - `get_asset_overview`
 - `get_real_time_record`
-- `analyze_capital_flow`
-- `analyze_technical`
-- `analyze_fundamentals_financial`
-- `analyze_fundamentals_valuation`
+- `analyze_caidazi_capital_flow`
+- `analyze_caidazi_technical`
+- `analyze_caidazi_financial`
+- `analyze_caidazi_valuation`
 - `investment_search_pro`
 - `compare_assets`
 - `get_caidazi_user_watchlist`
@@ -79,10 +79,10 @@ description: 当用户询问股票、ETF、基金、指数的快速研究、深�
 
 1. 先调用 `get_asset_overview(symbol=...)` 建立核心逻辑和主要矛盾。
 2. 如果用户关心当天表现或当前价格，调用 `get_real_time_record(symbol=...)`。
-3. 资金面：调用 `analyze_capital_flow(symbol=...)`。
-4. 技术面：调用 `analyze_technical(symbol=...)`。
-5. 财务面：调用 `analyze_fundamentals_financial(symbol=...)`。
-6. 估值面：调用 `analyze_fundamentals_valuation(symbol=...)`。
+3. 资金面：调用 `analyze_caidazi_capital_flow(symbol=...)`。
+4. 技术面：调用 `analyze_caidazi_technical(symbol=...)`。
+5. 财务面：调用 `analyze_caidazi_financial(symbol=...)`。
+6. 估值面：调用 `analyze_caidazi_valuation(symbol=...)`。
 7. 如果用户问"最近为什么动"或有具体事件，再调用 `investment_search_pro(query=...)` 补充新闻、公告或研报。
 8. 综合各工具返回，说明哪些维度互相印证、哪些维度互相冲突，以及接下来最值得验证的信号。
 
@@ -98,7 +98,7 @@ description: 当用户询问股票、ETF、基金、指数的快速研究、深�
 
 当 `compare_assets` 能完成任务时，不要手动循环调用原始工具。
 
-如果用户明确要求比较技术面、财务面或估值细节，而 `compare_assets` 返回不足，再对每个标的调用对应的 `analyze_technical`、`analyze_fundamentals_financial` 或 `analyze_fundamentals_valuation` 补充；不要把 `technical`、`financial`、`capital_flow` 当作 `compare_assets.metrics` 直接传入。
+如果用户明确要求比较技术面、资金面、财务面或估值细节，而 `compare_assets` 返回不足，再对每个标的调用对应的 `analyze_caidazi_technical`、`analyze_caidazi_capital_flow`、`analyze_caidazi_financial` 或 `analyze_caidazi_valuation` 补充；不要把 `technical`、`financial`、`capital_flow` 当作 `compare_assets.metrics` 直接传入。
 
 ## 澄清策略
 

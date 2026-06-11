@@ -70,6 +70,18 @@ test("adds Caidazi account boundaries to account-scoped tool descriptions", () =
   assert.match(tool.description, /不用于其他平台自选、持仓或交易/);
 });
 
+test("does not duplicate Caidazi account boundaries already present in registry descriptions", () => {
+  const description = "仅向当前 API Key 绑定的财搭子 App 自选池添加标的，不用于其他平台自选、持仓或交易。";
+  const tool = createMcpTool({
+    name: "add_caidazi_watchlist",
+    description,
+    input_detail: "| 参数 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| `ts_codes` | string | 是 | 股票代码 |\n",
+  });
+
+  assert.equal(tool.description, description);
+  assert.doesNotMatch(tool.description, /边界：/);
+});
+
 test("formats tool results as MCP text content without losing structure", () => {
   assert.deepEqual(resultToContent("plain text"), [
     { type: "text", text: "plain text" },
