@@ -27,9 +27,9 @@ description: 当用户想查看或使用自己在财搭子的自选、持仓、�
 - `get_caidazi_user_watchlist`
 - `get_caidazi_positions_summary`
 - `get_caidazi_portfolio_snapshot`
-- `add_watchlist`
-- `remove_watchlist`
-- `get_monitor_tasks`
+- `add_caidazi_watchlist`
+- `remove_caidazi_watchlist`
+- `get_caidazi_monitor_tasks`
 - `extract_assets`
 
 如果这些工具没有出现在当前可调用工具列表里，先使用当前 Agent 的 MCP 工具发现、刷新或延迟加载机制查找 `caidazi`。如果运行环境提供 `tool_search` 这类工具发现能力，必须先搜索 `caidazi` 或上述工具名；只有工具发现失败，或宿主 MCP 工具列表确认没有 `caidazi` 时，才说明 MCP 尚未连接。不要在未做工具发现前直接说"工具未开放"。
@@ -46,9 +46,9 @@ description: 当用户想查看或使用自己在财搭子的自选、持仓、�
    - holdings：用户说持仓、账户持仓、positions。
    - all：用户说我的资产、个人上下文，或同时需要自选和持仓。
 3. 自选调用 `get_caidazi_user_watchlist`，持仓调用 `get_caidazi_positions_summary(mask_sensitive=true)`，全部资产调用 `get_caidazi_portfolio_snapshot(mask_sensitive=true)`。
-4. 加自选时，先得到规范证券代码；多个代码用逗号传给 `add_watchlist(ts_codes=...)`。如果用户只给名称且有歧义，先用 `extract_assets`，仍不确定再最多问一个问题。
-5. 删自选时，先得到单个规范证券代码，调用 `remove_watchlist(ts_code=...)`。如果用户要删多个，逐个调用或请用户确认明确列表。
-6. 查监控任务时调用 `get_monitor_tasks(status, ts_codes)`；用户说进行中/已结束时分别传 `active`/`ended`，用户限定标的时先规范成证券代码再传 `ts_codes`，否则不传筛选。
+4. 加自选时，先得到规范证券代码；多个代码用逗号传给 `add_caidazi_watchlist(ts_codes=...)`。如果用户只给名称且有歧义，先用 `extract_assets`，仍不确定再最多问一个问题。
+5. 删自选时，先得到单个规范证券代码，调用 `remove_caidazi_watchlist(ts_code=...)`。如果用户要删多个，逐个调用或请用户确认明确列表。
+6. 查监控任务时调用 `get_caidazi_monitor_tasks(status, ts_codes)`；用户说进行中/已结束时分别传 `active`/`ended`，用户限定标的时先规范成证券代码再传 `ts_codes`，否则不传筛选。
 7. 如果工具返回 `requires_login`、`account_not_linked` 或 `ASSET_PERMISSION_REQUIRED`，提示用户到 财搭子 App -> 大发 agent -> 左上角 skill icon -> Skills 页面领取或绑定 API Key。
 8. 如果返回数据，只总结工具返回的资产、任务和安全公开字段。
 9. 如果下一步是研究，把返回代码交给 `caidazi-asset-research`、`caidazi-stock-screener`、`caidazi-market-pulse` 或 `caidazi-finance-search`。
@@ -120,7 +120,7 @@ description: 当用户想查看或使用自己在财搭子的自选、持仓、�
 动作：
 
 - 识别为 `600519.SH`；
-- 调用 `add_watchlist(ts_codes="600519.SH")`；
+- 调用 `add_caidazi_watchlist(ts_codes="600519.SH")`；
 - 返回工具确认结果。
 
 用户：
@@ -129,7 +129,7 @@ description: 当用户想查看或使用自己在财搭子的自选、持仓、�
 
 动作：
 
-- 调用 `get_monitor_tasks(status="active")`；
+- 调用 `get_caidazi_monitor_tasks(status="active")`；
 - 总结任务数量、关联资产和最近执行情况。
 
 ## 交接

@@ -61,8 +61,8 @@ test("creates MCP tool metadata from registry records", () => {
 
 test("adds Caidazi account boundaries to account-scoped tool descriptions", () => {
   const tool = createMcpTool({
-    name: "add_watchlist",
-    description: "添加股票到用户的自选股列表。",
+    name: "add_caidazi_watchlist",
+    description: "添加标的到财搭子自选池。",
     input_detail: "| 参数 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| `ts_codes` | string | 是 | 股票代码 |\n",
   });
 

@@ -60,7 +60,7 @@ test("stdio MCP bridge exposes REST-backed tools", async () => {
 async function createFakeBackend() {
   const calls = [];
   const server = createServer(async (request, response) => {
-    if (request.method === "GET" && request.url === "/api/tools/registered") {
+    if (request.method === "GET" && request.url === "/api/tools/registered?external=true") {
       respondJson(response, {
         tools: [
           {

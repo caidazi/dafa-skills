@@ -207,7 +207,7 @@ test("generic install copies skills and prints MCP spec", async () => {
 
 async function createFakeBackend() {
   const server = createServer(async (request, response) => {
-    if (request.method === "GET" && request.url === "/api/tools/registered") {
+    if (request.method === "GET" && request.url === "/api/tools/registered?external=true") {
       respondJson(response, {
         tools: [
           {

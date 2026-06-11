@@ -21,7 +21,7 @@ test("lists tools from the REST registry", async () => {
   const tools = await client.listTools();
 
   assert.deepEqual(tools, [{ name: "extract_assets" }]);
-  assert.equal(requests[0].url, "http://example.test/api/tools/registered");
+  assert.equal(requests[0].url, "http://example.test/api/tools/registered?external=true");
   assert.equal(requests[0].init.method, "GET");
 });
 

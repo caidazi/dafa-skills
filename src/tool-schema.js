@@ -23,11 +23,11 @@ const ACCOUNT_TOOL_BOUNDARIES = Object.freeze({
     "仅读取当前 API Key 绑定的财搭子 App 中已授权的持仓摘要，不代表完整券商账户。",
   get_caidazi_portfolio_snapshot:
     "仅读取当前 API Key 绑定的财搭子 App 自选、持仓和组合快照。",
-  add_watchlist:
+  add_caidazi_watchlist:
     "仅向当前 API Key 绑定的财搭子 App 自选池添加标的，不用于其他平台自选、持仓或交易。",
-  remove_watchlist:
+  remove_caidazi_watchlist:
     "仅从当前 API Key 绑定的财搭子 App 自选池移除标的，不用于其他平台自选、持仓或交易。",
-  get_monitor_tasks:
+  get_caidazi_monitor_tasks:
     "仅只读查询当前 API Key 绑定的财搭子 App 已有监控任务，不创建、订阅或删除监控任务。",
 });
 
