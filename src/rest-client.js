@@ -1,6 +1,6 @@
 import { isAllowedTool } from "./allowed-tools.js";
 
-const DEFAULT_REGISTRY_PATH = "/api/tools/registered";
+const DEFAULT_REGISTRY_PATH = "/api/tools/registered?external=true";
 const DEFAULT_CALL_PATH = "/api/tools/call";
 
 export class CaidaziRestClient {

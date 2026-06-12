@@ -69,7 +69,7 @@ description: 当用户询问市场热点、大盘走势、宏观影响、板块�
 ## 错误处理
 
 - `API_KEY_INVALID`：说明 key 无效或过期，引导用户到 财搭子 App -> 大发 agent -> 左上角 skill icon -> Skills 页面重新领取。
-- `TOOL_NOT_AVAILABLE_EXTERNALLY`：说明该能力暂未对外部 Agent 开放。
+- `TOOL_NOT_AVAILABLE_EXTERNALLY`：按工具返回的 `message` 说明能力暂不可用，不要扩写成账户或 MCP 不开放。
 - 其他工具错误：按工具返回的 `message` 用中文解释，不自行推断后台策略。
 
 ## 边界

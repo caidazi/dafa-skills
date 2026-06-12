@@ -71,6 +71,7 @@ test("install copies skills and registers Claude MCP through the host CLI", asyn
   const logged = await readFile(logPath, "utf8");
   assert.match(logged, /mcp add --scope user caidazi/);
   assert.match(logged, /CAIDAZI_API_KEY=test_api_key/);
+  assert.match(logged, /CAIDAZI_MCP_HOST=claude/);
   assert.match(logged, /npx -y @caidazi\/mcp@latest/);
 });
 
@@ -109,6 +110,7 @@ test("install registers OpenClaw MCP through the host CLI", async () => {
   assert.match(logged, /mcp add caidazi --command npx/);
   assert.match(logged, /--arg -y --arg @caidazi\/mcp@latest/);
   assert.match(logged, /--env CAIDAZI_API_KEY=test_api_key/);
+  assert.match(logged, /--env CAIDAZI_MCP_HOST=openclaw/);
 });
 
 test("install registers Codex MCP through the host CLI", async () => {
@@ -145,6 +147,7 @@ test("install registers Codex MCP through the host CLI", async () => {
   const logged = await readFile(logPath, "utf8");
   assert.match(logged, /mcp add caidazi --env CAIDAZI_API_KEY=test_api_key/);
   assert.match(logged, /--env CAIDAZI_BASE_URL=https:\/\/mcp\.zhicepilot\.com\//);
+  assert.match(logged, /--env CAIDAZI_MCP_HOST=codex/);
   assert.doesNotMatch(logged, /CAIDAZI_ALLOW_HTTP/);
   assert.match(logged, /-- npx -y @caidazi\/mcp@latest/);
 });
@@ -197,13 +200,14 @@ test("generic install copies skills and prints MCP spec", async () => {
   assert.match(stdout, /Register this stdio MCP server/);
   assert.match(stdout, /"command": "npx"/);
   assert.match(stdout, /"@caidazi\/mcp@latest"/);
+  assert.match(stdout, /"CAIDAZI_MCP_HOST": "generic"/);
   assert.doesNotMatch(stdout, /test_api_key/);
   await stat(join(skillsDir, "caidazi-asset-research", "SKILL.md"));
 });
 
 async function createFakeBackend() {
   const server = createServer(async (request, response) => {
-    if (request.method === "GET" && request.url === "/api/tools/registered") {
+    if (request.method === "GET" && request.url === "/api/tools/registered?external=true") {
       respondJson(response, {
         tools: [
           {

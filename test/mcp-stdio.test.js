@@ -24,6 +24,7 @@ test("stdio MCP bridge exposes REST-backed tools", async () => {
       CAIDAZI_API_KEY: "test_api_key",
       CAIDAZI_BASE_URL: backend.baseUrl,
       CAIDAZI_ALLOW_HTTP: "true",
+      CAIDAZI_MCP_NO_UPDATE_NOTIFIER: "1",
     },
     stderr: "pipe",
   });
@@ -59,7 +60,7 @@ test("stdio MCP bridge exposes REST-backed tools", async () => {
 async function createFakeBackend() {
   const calls = [];
   const server = createServer(async (request, response) => {
-    if (request.method === "GET" && request.url === "/api/tools/registered") {
+    if (request.method === "GET" && request.url === "/api/tools/registered?external=true") {
       respondJson(response, {
         tools: [
           {

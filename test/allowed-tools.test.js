@@ -6,25 +6,36 @@ import { ALLOWED_TOOL_NAMES, ALLOWED_TOOL_SET } from "../src/allowed-tools.js";
 
 const EXPECTED_TOOL_NAMES = [
   "extract_assets",
-  "get_hot_report",
-  "get_real_time_market_summary",
-  "get_market_analysis",
-  "get_macro_analysis",
+  "investment_search_pro",
   "get_asset_overview",
   "get_real_time_record",
-  "analyze_capital_flow",
-  "analyze_technical",
-  "analyze_fundamentals_financial",
-  "analyze_fundamentals_valuation",
-  "investment_search_pro",
+  "get_market_analysis",
+  "get_hot_report",
+  "get_index_related_etfs",
+  "get_etf_constituents",
+  "get_stock_belongings",
+  "get_real_time_market_summary",
+  "get_macro_analysis",
+  "analyze_caidazi_capital_flow",
+  "analyze_caidazi_technical",
+  "analyze_caidazi_financial",
+  "analyze_caidazi_valuation",
   "compare_assets",
   "screen_stocks",
-  "get_etf_constituents",
-  "get_index_related_etfs",
-  "get_stock_belongings",
   "get_caidazi_user_watchlist",
+  "add_caidazi_watchlist",
+  "remove_caidazi_watchlist",
+  "get_caidazi_monitor_tasks",
   "get_caidazi_positions_summary",
   "get_caidazi_portfolio_snapshot",
+  "analyze_event_impact",
+  "analyze_earnings_result",
+  "preview_earnings",
+  "get_sector_radar",
+  "sector_deep_dive",
+  "relative_valuation",
+  "intrinsic_valuation",
+  "generate_asset_report",
 ];
 
 test("MCP allowlist includes the direct user-facing routes", () => {
@@ -33,6 +44,12 @@ test("MCP allowlist includes the direct user-facing routes", () => {
   assert.ok(ALLOWED_TOOL_SET.has("get_real_time_record"));
   assert.ok(ALLOWED_TOOL_SET.has("compare_assets"));
   assert.ok(ALLOWED_TOOL_SET.has("get_caidazi_user_watchlist"));
+  assert.ok(ALLOWED_TOOL_SET.has("add_caidazi_watchlist"));
+  assert.ok(ALLOWED_TOOL_SET.has("remove_caidazi_watchlist"));
+  assert.ok(ALLOWED_TOOL_SET.has("get_caidazi_monitor_tasks"));
+  assert.equal(ALLOWED_TOOL_SET.has("add_watchlist"), false);
+  assert.equal(ALLOWED_TOOL_SET.has("remove_watchlist"), false);
+  assert.equal(ALLOWED_TOOL_SET.has("get_monitor_tasks"), false);
 });
 
 test("README keeps the install contract compact", () => {

@@ -7,7 +7,7 @@ description: 当用户询问股票、ETF、基金、指数的快速研究、深�
 
 用这个 skill 处理单个标的快速研究、深度研究和简单多标的比较。公开流程要尽量少澄清，优先通过已配置的 MCP 工具完成；深度研究需要用服务端工具补齐资金面、技术面、财务面和估值面，不在本地复刻分析模型。
 
-如果 MCP 工具不可用，先说明 MCP 尚未连接并请用户完成配置；不要为了回答单次查询临时启动 npm 包、手写 JSON-RPC 或把 API Key 放进命令。
+如果 MCP 工具没有出现在当前可调用工具列表里，先使用当前 Agent 的 MCP 工具发现、刷新或延迟加载机制查找 `caidazi`。如果运行环境提供 `tool_search` 这类工具发现能力，必须先搜索 `caidazi` 或目标工具名；只有工具发现失败，或宿主 MCP 工具列表确认没有 `caidazi` 时，才说明 MCP 尚未连接并请用户完成配置。不要为了回答单次查询临时启动 npm 包、手写 JSON-RPC 或把 API Key 放进命令。
 
 如果用户只是问"最新行情"、"现在多少钱"、"今天涨跌多少"、"成交额/成交量"，不要为了读取本 skill 再派生 Agent 或扫描本地文件；直接调用 MCP 工具 `get_real_time_record(symbol=...)` 并返回工具结果。
 
@@ -28,10 +28,10 @@ description: 当用户询问股票、ETF、基金、指数的快速研究、深�
 - `extract_assets`
 - `get_asset_overview`
 - `get_real_time_record`
-- `analyze_capital_flow`
-- `analyze_technical`
-- `analyze_fundamentals_financial`
-- `analyze_fundamentals_valuation`
+- `analyze_caidazi_capital_flow`
+- `analyze_caidazi_technical`
+- `analyze_caidazi_financial`
+- `analyze_caidazi_valuation`
 - `investment_search_pro`
 - `compare_assets`
 - `get_caidazi_user_watchlist`
@@ -79,10 +79,10 @@ description: 当用户询问股票、ETF、基金、指数的快速研究、深�
 
 1. 先调用 `get_asset_overview(symbol=...)` 建立核心逻辑和主要矛盾。
 2. 如果用户关心当天表现或当前价格，调用 `get_real_time_record(symbol=...)`。
-3. 资金面：调用 `analyze_capital_flow(symbol=...)`。
-4. 技术面：调用 `analyze_technical(symbol=...)`。
-5. 财务面：调用 `analyze_fundamentals_financial(symbol=...)`。
-6. 估值面：调用 `analyze_fundamentals_valuation(symbol=...)`。
+3. 资金面：调用 `analyze_caidazi_capital_flow(symbol=...)`。
+4. 技术面：调用 `analyze_caidazi_technical(symbol=...)`。
+5. 财务面：调用 `analyze_caidazi_financial(symbol=...)`。
+6. 估值面：调用 `analyze_caidazi_valuation(symbol=...)`。
 7. 如果用户问"最近为什么动"或有具体事件，再调用 `investment_search_pro(query=...)` 补充新闻、公告或研报。
 8. 综合各工具返回，说明哪些维度互相印证、哪些维度互相冲突，以及接下来最值得验证的信号。
 
@@ -98,7 +98,7 @@ description: 当用户询问股票、ETF、基金、指数的快速研究、深�
 
 当 `compare_assets` 能完成任务时，不要手动循环调用原始工具。
 
-如果用户明确要求比较技术面、财务面或估值细节，而 `compare_assets` 返回不足，再对每个标的调用对应的 `analyze_technical`、`analyze_fundamentals_financial` 或 `analyze_fundamentals_valuation` 补充；不要把 `technical`、`financial`、`capital_flow` 当作 `compare_assets.metrics` 直接传入。
+如果用户明确要求比较技术面、资金面、财务面或估值细节，而 `compare_assets` 返回不足，再对每个标的调用对应的 `analyze_caidazi_technical`、`analyze_caidazi_capital_flow`、`analyze_caidazi_financial` 或 `analyze_caidazi_valuation` 补充；不要把 `technical`、`financial`、`capital_flow` 当作 `compare_assets.metrics` 直接传入。
 
 ## 澄清策略
 
@@ -134,7 +134,7 @@ description: 当用户询问股票、ETF、基金、指数的快速研究、深�
 - API Key 无效或过期：引导用户到 财搭子 App -> 大发 agent -> 左上角 skill icon -> Skills 页面重新领取。
 - 工具调用失败：按工具返回的 `message` 说明，不自行推断后台策略。
 - 标的未找到：请用户补充更清晰的代码或名称。
-- 工具未开放：说明该能力暂未对外部 Agent 开放。
+- 工具未出现在当前 MCP 列表：先刷新或发现 `caidazi` 工具；仍不可用时说明 MCP 尚未连接或该能力暂不可用。
 - 某个深度维度不可用：保留已返回维度，明确缺失项，不要用其他维度替代。
 
 ## 边界
