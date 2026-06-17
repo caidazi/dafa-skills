@@ -30,7 +30,7 @@ export async function getUpdateNotice({
     update: {
       current: currentVersion,
       latest,
-      message: `财搭子 MCP ${latest} 已发布，当前 ${currentVersion}。请在本轮任务完成后更新，然后刷新 MCP 工具列表或新建 session。`,
+      message: `财搭子 MCP/Skills ${latest} 已发布，当前 MCP ${currentVersion}。请在本轮任务完成后更新，然后刷新 MCP 工具列表或新建 session。`,
       command,
     },
   };

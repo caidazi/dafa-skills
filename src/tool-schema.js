@@ -75,17 +75,23 @@ export function parseInputDetailToSchema(inputDetail) {
 
 export function resultToContent(result, notice = null) {
   const payload = notice ? withNotice(result, notice) : result;
+  const noticeText = noticeToText(notice);
+  const content = [];
 
   if (typeof payload === "string") {
-    return [{ type: "text", text: payload }];
-  }
-
-  return [
-    {
+    content.push({ type: "text", text: payload });
+  } else {
+    content.push({
       type: "text",
       text: JSON.stringify(payload, null, 2),
-    },
-  ];
+    });
+  }
+
+  if (noticeText) {
+    content.push({ type: "text", text: noticeText });
+  }
+
+  return content;
 }
 
 function withNotice(result, notice) {
@@ -103,6 +109,22 @@ function withNotice(result, notice) {
     data: result,
     _notice: notice,
   };
+}
+
+function noticeToText(notice) {
+  const update = notice?.update;
+  if (!update) {
+    return "";
+  }
+
+  const message = update.message || "财搭子 MCP/Skills 有新版本可用。";
+  const command = update.command ? `更新命令：${update.command}` : "";
+  return [
+    "财搭子 MCP/Skills 更新提醒",
+    message,
+    command,
+    "当前任务完成后建议更新；更新后刷新 MCP 工具列表或新建 session。",
+  ].filter(Boolean).join("\n");
 }
 
 function parseMarkdownRows(inputDetail = "") {

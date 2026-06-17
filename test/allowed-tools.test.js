@@ -58,6 +58,11 @@ test("README keeps the install contract compact", () => {
   assert.match(readme, /npx -y @caidazi\/mcp@latest install --host <当前工具>/);
   assert.match(readme, /host 可选：claude、codex、openclaw、generic/);
   assert.match(readme, /贵州茅台现在多少钱？/);
+  assert.match(readme, /每次执行时直接调用财搭子 MCP 工具/);
+  assert.match(readme, /分析表达参考已安装的 caidazi skills/);
+  assert.match(readme, /不要用网页搜索、通用行情源、bash\/npx 或本地脚本替代财搭子 MCP/);
+  assert.match(readme, /不是创建或修改财搭子 App 监控任务/);
+  assert.match(readme, /get_caidazi_monitor_tasks/);
   assert.doesNotMatch(readme, /"mcpServers"\s*:/);
   assert.doesNotMatch(readme, /settings\.json/);
   assert.doesNotMatch(readme, /人工安装/);
