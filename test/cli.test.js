@@ -142,6 +142,14 @@ test("install registers Codex MCP through the host CLI", async () => {
   );
 
   assert.match(stdout, /Registered caidazi MCP with Codex/);
+  assert.match(stdout, /Codex automation/);
+  assert.match(stdout, /自选早盘表现总结和午盘研判/);
+  assert.match(stdout, /财搭子账户收盘表现总结/);
+  assert.match(stdout, /每次执行时直接调用财搭子 MCP 工具/);
+  assert.match(stdout, /分析表达参考已安装的 caidazi skills/);
+  assert.match(stdout, /不要用网页搜索、通用行情源、bash\/npx 或本地脚本替代财搭子 MCP/);
+  assert.match(stdout, /不是创建或修改财搭子 App 监控任务/);
+  assert.match(stdout, /get_caidazi_monitor_tasks/);
   await stat(join(skillsDir, "caidazi-asset-research", "SKILL.md"));
 
   const logged = await readFile(logPath, "utf8");
@@ -201,6 +209,11 @@ test("generic install copies skills and prints MCP spec", async () => {
   assert.match(stdout, /"command": "npx"/);
   assert.match(stdout, /"@caidazi\/mcp@latest"/);
   assert.match(stdout, /"CAIDAZI_MCP_HOST": "generic"/);
+  assert.match(stdout, /recurring task, automation, scheduler, or loop feature/);
+  assert.match(stdout, /每个 A 股交易日 11:45/);
+  assert.match(stdout, /每个 A 股交易日 15:30/);
+  assert.match(stdout, /get_caidazi_user_watchlist/);
+  assert.match(stdout, /get_caidazi_positions_summary/);
   assert.doesNotMatch(stdout, /test_api_key/);
   await stat(join(skillsDir, "caidazi-asset-research", "SKILL.md"));
 });

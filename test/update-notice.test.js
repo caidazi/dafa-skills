@@ -37,7 +37,7 @@ test("returns an update notice when npm latest is newer", async () => {
     update: {
       current: "0.2.8",
       latest: "0.2.9",
-      message: "财搭子 MCP 0.2.9 已发布，当前 0.2.8。请在本轮任务完成后更新，然后刷新 MCP 工具列表或新建 session。",
+      message: "财搭子 MCP/Skills 0.2.9 已发布，当前 MCP 0.2.8。请在本轮任务完成后更新，然后刷新 MCP 工具列表或新建 session。",
       command: "npx -y @caidazi/mcp@latest install --host codex",
     },
   });

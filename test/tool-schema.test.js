@@ -92,11 +92,21 @@ test("formats tool results as MCP text content without losing structure", () => 
   ]);
 });
 
-test("adds update notices to structured MCP results", () => {
-  assert.deepEqual(resultToContent({ ok: true }, { update: { latest: "9.9.9" } }), [
+test("adds structured and visible update notices to MCP results", () => {
+  assert.deepEqual(resultToContent({ ok: true }, {
+    update: {
+      latest: "9.9.9",
+      message: "财搭子 MCP/Skills 9.9.9 已发布。",
+      command: "npx -y @caidazi/mcp@latest install --host codex",
+    },
+  }), [
     {
       type: "text",
-      text: "{\n  \"ok\": true,\n  \"_notice\": {\n    \"update\": {\n      \"latest\": \"9.9.9\"\n    }\n  }\n}",
+      text: "{\n  \"ok\": true,\n  \"_notice\": {\n    \"update\": {\n      \"latest\": \"9.9.9\",\n      \"message\": \"财搭子 MCP/Skills 9.9.9 已发布。\",\n      \"command\": \"npx -y @caidazi/mcp@latest install --host codex\"\n    }\n  }\n}",
+    },
+    {
+      type: "text",
+      text: "财搭子 MCP/Skills 更新提醒\n财搭子 MCP/Skills 9.9.9 已发布。\n更新命令：npx -y @caidazi/mcp@latest install --host codex\n当前任务完成后建议更新；更新后刷新 MCP 工具列表或新建 session。",
     },
   ]);
 });

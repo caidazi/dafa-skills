@@ -10,7 +10,7 @@ import { CaidaziRestClient } from "./rest-client.js";
 import { createMcpTool, resultToContent } from "./tool-schema.js";
 import { getUpdateNotice } from "./update-notice.js";
 
-const PACKAGE_VERSION = "0.2.8";
+const PACKAGE_VERSION = "0.2.9";
 
 export function createServer({
   client,
@@ -28,7 +28,7 @@ export function createServer({
         tools: {},
       },
       instructions:
-        "Use these Caidazi MCP tools directly when they are available. Do not spawn a sub-agent, scan local skill files, start @caidazi/mcp from a command line, or handwrite JSON-RPC to answer a user query. For a single asset quote/latest price/change/volume/amount, call get_real_time_record directly and stop. Use get_asset_overview only for research or explanation, not for pure quote lookup. For multi-asset comparison, call compare_assets with canonical arguments symbols, metrics, and period; supported metrics are price, valuation, capital, and overview. Do not use assets or dimensions as compare_assets arguments. Caidazi account tools only read or operate on the Caidazi App account, Caidazi watchlist pool, and existing Caidazi monitor tasks bound to the configured API key. Caidazi tools provide market pulse, real-time asset quotes, asset research, capital-flow analysis, technical analysis, financial analysis, valuation analysis, stock screening, fund/ETF research, macro analysis, finance search, user watchlist/positions/portfolio context, explicit watchlist add/remove, existing monitor-task lookup, and portfolio review.",
+        "Use these Caidazi MCP tools directly when they are available. Do not spawn a sub-agent, scan local skill files, start @caidazi/mcp from a command line, or handwrite JSON-RPC to answer a user query. For a single asset quote/latest price/change/volume/amount, call get_real_time_record directly and stop. Use get_asset_overview only for research or explanation, not for pure quote lookup. For multi-asset comparison, call compare_assets with canonical arguments symbols, metrics, and period; supported metrics are price, valuation, capital, and overview. Do not use assets or dimensions as compare_assets arguments. If a tool result includes _notice.update or a text block titled 财搭子 MCP/Skills 更新提醒, include that update reminder briefly at the end of your final answer. Caidazi account tools only read or operate on the Caidazi App account, Caidazi watchlist pool, and existing Caidazi monitor tasks bound to the configured API key. Caidazi tools provide market pulse, real-time asset quotes, asset research, capital-flow analysis, technical analysis, financial analysis, valuation analysis, stock screening, fund/ETF research, macro analysis, finance search, user watchlist/positions/portfolio context, explicit watchlist add/remove, existing monitor-task lookup, and portfolio review.",
     },
   );
 

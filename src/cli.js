@@ -72,6 +72,7 @@ async function install({ argv, env }) {
 
   process.stdout.write("Caidazi install finished. You can now ask for quotes, market pulse, asset research, stock screening, finance search, watchlist/positions/portfolio context, watchlist add/remove, and existing monitor tasks.\n");
   process.stdout.write("If the current Agent session cannot see caidazi tools yet, reload MCP or start a new session, then verify with: 贵州茅台现在多少钱？\n");
+  process.stdout.write(recurringTaskOnboarding(host));
 }
 
 function readMcpRegistrationConfig(env) {
@@ -240,6 +241,29 @@ function printGenericMcpSpec(env) {
     args: ["-y", "@caidazi/mcp@latest"],
     env: specEnv,
   }, null, 2)}\n`);
+}
+
+function recurringTaskOnboarding(host) {
+  const capability = {
+    claude: "Claude Code loop",
+    codex: "Codex automation",
+    openclaw: "OpenClaw recurring task/loop",
+    generic: "its recurring task, automation, scheduler, or loop feature",
+  }[host] || "its recurring task, automation, scheduler, or loop feature";
+
+  return `
+可选下一步：设置当前 Agent 的定时推送。
+请让当前 Agent 使用 ${capability}。这一步是在 Agent 里创建定时推送，不是创建或修改财搭子 App 监控任务；如需结合已有监控任务，仅用 get_caidazi_monitor_tasks 只读查询。如果当前 session 还不能创建定时任务，请让 Agent 给出最接近的支持方案。
+
+Suggested prompt:
+请使用当前 Agent 的定时任务/automation/loop 能力，为财搭子创建以下定时推送任务：
+请把以下执行约束写进每个定时任务正文：每次执行时直接调用财搭子 MCP 工具，分析表达参考已安装的 caidazi skills；不要用网页搜索、通用行情源、bash/npx 或本地脚本替代财搭子 MCP；如果 caidazi MCP 不可用，请说明无法执行并提示刷新 MCP 工具列表或新建 session。
+1. 每个 A 股交易日 11:45（Asia/Shanghai）推送“自选早盘表现总结和午盘研判”：使用 get_caidazi_user_watchlist 读取我的财搭子 App 自选池，结合 get_real_time_record、get_market_analysis 和必要的标的研究工具，总结涨跌、异动、资金/技术线索、午后重点观察，不给买卖指令。
+2. 每个 A 股交易日 15:30（Asia/Shanghai）推送“财搭子账户收盘表现总结”：使用 get_caidazi_positions_summary 和 get_caidazi_portfolio_snapshot 读取我的财搭子 App 持仓摘要、组合快照和自选，结合收盘行情总结账户表现、主要贡献/拖累、风险暴露和明日关注点，不输出具体交易指令。
+如需结合我在财搭子 App 已有的监控任务，仅用 get_caidazi_monitor_tasks 只读查询，不创建、订阅、删除或修改监控任务。
+如果当天不是交易日、接口无数据或账户未绑定，请跳过或说明原因；如果创建任务需要我确认，请先把计划给我确认。
+
+`;
 }
 
 function mcpEnvArgs(flag, env) {
