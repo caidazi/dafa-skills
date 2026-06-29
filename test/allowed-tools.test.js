@@ -68,3 +68,36 @@ test("README keeps the install contract compact", () => {
   assert.doesNotMatch(readme, /人工安装/);
   assert.doesNotMatch(readme, /npm test/);
 });
+
+test("waiting discipline copy stays plain and non-promissory", () => {
+  const docs = [
+    "README.md",
+    "src/mcp-server.js",
+    "caidazi-asset-research/SKILL.md",
+    "caidazi-stock-screener/SKILL.md",
+  ].map((path) => readFileSync(path, "utf8")).join("\n");
+
+  for (const phrase of [
+    "支持判断的信息",
+    "观察信号",
+    "反证条件",
+    "继续观察理由",
+    "候选观察池",
+  ]) {
+    assert.match(docs, new RegExp(phrase));
+  }
+
+  for (const forbidden of [
+    "λ",
+    "状态跳变",
+    "review clock",
+    "复盘时钟",
+    "证据网络",
+    "买点",
+    "卖点",
+    "高胜率",
+    "稳赚",
+  ]) {
+    assert.doesNotMatch(docs, new RegExp(forbidden));
+  }
+});
