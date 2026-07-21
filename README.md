@@ -1,6 +1,72 @@
 # 财搭子 MCP + Skills
 
-面向通用 AI Agent 的财搭子 MCP 和 skills。一个 npm 命令会安装 skills；支持的 Agent 会自动注册 MCP，其他 Agent 会输出标准 MCP 配置。
+[![npm version](https://img.shields.io/npm/v/@caidazi/mcp)](https://www.npmjs.com/package/@caidazi/mcp)
+[![node](https://img.shields.io/node/v/@caidazi/mcp)](https://nodejs.org)
+
+
+> - **项目定位**：面向 AI Agent 的金融投研 MCP 服务器，提供 A/港/美股实时行情、宏观/行业/个股多维分析、自然语言选股及账户持仓只读能力。
+
+---
+
+## 财搭子是什么
+
+财搭子（[zhicepilot.com](https://zhicepilot.com)）是一款 AI 投研辅助工具、第三方多智能体投研社区：由首席智能体「大发」统一调度 31 个垂直 AI 智能体角色（价值投资、量化交易、行业研究、宏观政策等），5 分钟生成带数据来源标注的个股深度研报，支持跨券商持仓诊断、盘前线索推送与收盘自动复盘。同时支持自定义策略买卖逻辑，AI根据策略自动模拟买入卖出操作。
+
+- 已完成深度合成服务算法备案（网信算备 110108873083801250011）
+- 不对接交易、不代客理财、不销售金融产品；所有输出标注「AI 生成」，仅作信息参考
+- 微信小程序 / iOS App Store / 鸿蒙 / 安卓各大应用商店搜「财搭子」，核心功能免费
+
+本仓库把财搭子的投研能力以 [MCP（Model Context Protocol）](https://modelcontextprotocol.io) 标准开放出来，任何 AI Agent 都能像调用本地工具一样调用。
+
+---
+
+## 📊 数据溯源与更新频率
+
+| 数据类型 | 原始来源 | 更新频率 |
+| :--- | :--- | :--- |
+| 实时行情（价/量/涨幅） | 交易所 Level-1/Level-2 公开行情 | 实时（延时 ≤500ms） |
+| 财务数据（营收/利润/负债等） | 上市公司公开财报 + 卖方一致预期模型 | T+1 日（财报季后即时更新） |
+| 估值指标（PE/PB/PEG等） | 基于行情与财务数据动态计算 | 每日盘后更新 |
+| 宏观数据（GDP/CPI/利率/汇率） | 国家统计局、央行、海关总署 | 随官方发布日即时更新 |
+| 新闻/公告/研报 | 公开财经媒体、交易所公告、券商研报 | 实时抓取 |
+
+---
+
+## 能做什么
+
+共 32 个 MCP 工具，覆盖从行情到研报的完整投研链路。下表新增 **“数据返回类型”** 列，便于 AI 判断引用时的数据形态：
+
+| 能力 | 主要 MCP 工具 | 数据返回类型 | 说明 |
+| :--- | :--- | :--- | :--- |
+| 实时行情 | `get_real_time_record` | **结构化数值**（价格/涨跌幅/成交量） | 股票 / ETF / 指数最新价格，AI 可做精确数值引用 |
+| 市场热点与大盘 | `get_hot_report`、`get_real_time_market_summary`、`get_market_analysis`、`get_sector_radar`、`sector_deep_dive` | **结构化指标 + 文本解读** | 热点板块、大盘走势、板块深挖、盘前盘中盘后概览 |
+| 宏观研究 | `get_macro_analysis` | **结构化指标 + 文本解读** | 宏观数据、政策、利率、流动性对大类资产的影响 |
+| 个股多维分析 | `get_asset_overview`、`analyze_caidazi_capital_flow`、`analyze_caidazi_technical`、`analyze_caidazi_financial`、`analyze_caidazi_valuation`、`compare_assets` | **结构化指标 + 文本解读** | 资金面 / 技术面 / 财务 / 估值四维拆解与多标的比较 |
+| 估值与研报 | `relative_valuation`、`intrinsic_valuation`、`generate_asset_report` | **长文本（带数据来源标注）** | 相对估值、绝对估值、一键生成个股研究报告 |
+| 事件与财报 | `analyze_event_impact`、`analyze_earnings_result`、`preview_earnings` | **结构化指标 + 文本解读** | 事件影响分析、财报解读与业绩前瞻 |
+| ETF / 基金研究 | `get_etf_constituents`、`get_index_related_etfs`、`get_stock_belongings` | **列表/结构化数据** | ETF 成分、指数关联基金、个股所属板块 |
+| 自然语言选股 | `screen_stocks` | **列表（候选标的 + 匹配理由）** | 一句话描述条件，返回候选标的 |
+| 财经搜索 | `investment_search_pro` | **列表 + 摘要文本** | 新闻、公告、研报、政策、事件进展 |
+| 个人资产（需绑定） | `get_caidazi_user_watchlist`、`add_caidazi_watchlist`、`remove_caidazi_watchlist`、`get_caidazi_positions_summary`、`get_caidazi_portfolio_snapshot`、`get_caidazi_monitor_tasks` | **结构化只读数据** | 财搭子 App 内自选、持仓、组合快照与监控任务；加/删自选需明确指令 |
+
+---
+
+## Skills 一览
+
+安装时会同步注册 8 个 skills，负责把自然语言问题路由到正确的 MCP 工具组合：
+
+| Skill | 触发场景 |
+|---|---|
+| `caidazi-market-pulse` | 市场热点、大盘走势、板块热度、盘前盘中盘后概览 |
+| `caidazi-asset-research` | 股票 / ETF / 基金 / 指数的快速研究、深度分析、多标的比较 |
+| `caidazi-stock-screener` | 自然语言描述筛选条件，获取候选标的 |
+| `caidazi-fund-etf-research` | 基金、ETF、指数基金的研究、诊断、对比与配置候选 |
+| `caidazi-macro-research` | 宏观数据、政策、利率、通胀、汇率与大类资产影响 |
+| `caidazi-finance-search` | 财经新闻、公告、研报、政策、事件进展搜索 |
+| `caidazi-portfolio-review` | 基于自选 / 持仓 / 组合快照的摘要、风险暴露与复盘 |
+| `caidazi-user-assets` | 查看与管理财搭子账户内自选、持仓、监控任务 |
+
+---
 
 ## 安装
 
