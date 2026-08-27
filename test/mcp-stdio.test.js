@@ -35,8 +35,21 @@ test("stdio MCP bridge exposes REST-backed tools", async () => {
 
     assert.deepEqual(
       listed.tools.map((tool) => tool.name),
-      ["extract_assets"],
+      [
+        "extract_assets",
+        "get_a_share_realtime_1m_price",
+        "get_a_share_history_1m_price",
+      ],
     );
+    for (const toolName of [
+      "get_a_share_realtime_1m_price",
+      "get_a_share_history_1m_price",
+    ]) {
+      const minuteTool = listed.tools.find((tool) => tool.name === toolName);
+      assert.equal(minuteTool.inputSchema.properties.symbols.type, "array");
+      assert.equal(minuteTool.inputSchema.properties.symbols.items.type, "string");
+      assert.deepEqual(minuteTool.inputSchema.required, ["symbols"]);
+    }
 
     const result = await client.callTool({
       name: "extract_assets",
@@ -69,8 +82,20 @@ async function createFakeBackend() {
             input_detail:
               "| 参数 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| `text` | string | 是 | 用户输入 |\n",
           },
+          {
+            name: "get_a_share_realtime_1m_price",
+            description: "获取 A 股最新 1 分钟行情",
+            input_detail:
+              "| 参数 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| `symbols` | string[] | 是 | A 股代码列表 |\n| `include_incomplete` | boolean | 否 | 是否返回未完成分钟 |\n",
+          },
+          {
+            name: "get_a_share_history_1m_price",
+            description: "获取 A 股最近 2 个交易日分钟行情",
+            input_detail:
+              "| 参数 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| `symbols` | string[] | 是 | A 股代码列表 |\n| `end_date` | string | 否 | 截止交易日 |\n| `trading_days` | integer | 否 | 固定为 2 |\n",
+          },
         ],
-        total: 1,
+        total: 3,
       });
       return;
     }

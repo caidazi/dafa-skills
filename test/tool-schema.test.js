@@ -32,6 +32,20 @@ test("parses markdown input detail into a JSON schema", () => {
   });
 });
 
+test("parses suffix array notation used by the production registry", () => {
+  const schema = parseInputDetailToSchema(`| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| \`symbols\` | string[] | 是 | A 股代码列表 |
+`);
+
+  assert.deepEqual(schema.properties.symbols, {
+    type: "array",
+    items: { type: "string" },
+    description: "A 股代码列表",
+  });
+  assert.deepEqual(schema.required, ["symbols"]);
+});
+
 test("ignores explicit no-parameter rows", () => {
   const schema = parseInputDetailToSchema(`| 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|

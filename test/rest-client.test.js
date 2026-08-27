@@ -25,27 +25,27 @@ test("lists tools from the REST registry", async () => {
   assert.equal(requests[0].init.method, "GET");
 });
 
-test("filters registered tools to the public package allowlist", async () => {
+test("returns the server-authorized external registry without client-side filtering", async () => {
+  const registeredTools = [
+    { name: "extract_assets" },
+    { name: "get_a_share_realtime_1m_price" },
+    { name: "get_a_share_history_1m_price" },
+    { name: "get_us_kline" },
+    { name: "get_caidazi_positions_summary" },
+  ];
   const client = new CaidaziRestClient({
     baseUrl: "http://example.test",
     apiKey: "test_api_key",
     fetchImpl: async () =>
       jsonResponse({
-        tools: [
-          { name: "extract_assets" },
-          { name: "internal_raw_database_query" },
-          { name: "get_caidazi_positions_summary" },
-        ],
-        total: 3,
+        tools: registeredTools,
+        total: 5,
       }),
   });
 
   const tools = await client.listTools();
 
-  assert.deepEqual(
-    tools.map((tool) => tool.name),
-    ["extract_assets", "get_caidazi_positions_summary"],
-  );
+  assert.deepEqual(tools, registeredTools);
 });
 
 test("calls tools through the REST bridge with bearer auth", async () => {
@@ -76,6 +76,49 @@ test("calls tools through the REST bridge with bearer auth", async () => {
       tool_name: "extract_assets",
       parameters: { text: "贵州茅台" },
     }),
+  );
+});
+
+test("forwards A-share minute tool calls without changing parameters", async () => {
+  const requests = [];
+  const client = new CaidaziRestClient({
+    baseUrl: "http://example.test",
+    apiKey: "test_api_key",
+    fetchImpl: async (url, init) => {
+      requests.push({ url, init });
+      return jsonResponse({ success: true, result: { items: [] } });
+    },
+  });
+
+  await client.callTool("get_a_share_realtime_1m_price", {
+    symbols: ["600519.SH"],
+    include_incomplete: true,
+  });
+  await client.callTool("get_a_share_history_1m_price", {
+    symbols: ["600519.SH", "300750.SZ"],
+    end_date: "20260826",
+    trading_days: 2,
+  });
+
+  assert.deepEqual(
+    requests.map((request) => JSON.parse(request.init.body)),
+    [
+      {
+        tool_name: "get_a_share_realtime_1m_price",
+        parameters: {
+          symbols: ["600519.SH"],
+          include_incomplete: true,
+        },
+      },
+      {
+        tool_name: "get_a_share_history_1m_price",
+        parameters: {
+          symbols: ["600519.SH", "300750.SZ"],
+          end_date: "20260826",
+          trading_days: 2,
+        },
+      },
+    ],
   );
 });
 
@@ -130,19 +173,23 @@ test("sends normalized compare_assets aliases to the backend", async () => {
   });
 });
 
-test("rejects calls to tools outside the public package allowlist", async () => {
+test("forwards registry tool calls and relies on backend authorization", async () => {
+  const requests = [];
   const client = new CaidaziRestClient({
     baseUrl: "http://example.test",
     apiKey: "test_api_key",
-    fetchImpl: async () => {
-      throw new Error("should not reach backend");
+    fetchImpl: async (url, init) => {
+      requests.push({ url, init });
+      return jsonResponse({ success: true, result: { records: [] } });
     },
   });
 
-  await assert.rejects(
-    () => client.callTool("internal_raw_database_query", {}),
-    /not exposed by @caidazi\/mcp/,
-  );
+  await client.callTool("get_us_kline", { symbol: "AAPL" });
+
+  assert.deepEqual(JSON.parse(requests[0].init.body), {
+    tool_name: "get_us_kline",
+    parameters: { symbol: "AAPL" },
+  });
 });
 
 test("redacts API keys from surfaced errors", async () => {

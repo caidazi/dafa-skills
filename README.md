@@ -34,11 +34,12 @@
 
 ## 能做什么
 
-共 32 个 MCP 工具，覆盖从行情到研报的完整投研链路。下表新增 **“数据返回类型”** 列，便于 AI 判断引用时的数据形态：
+MCP 工具列表由生产服务动态发布，覆盖从行情到研报的完整投研链路；实际可用工具以当前连接返回的 `tools/list` 为准：
 
 | 能力 | 主要 MCP 工具 | 数据返回类型 | 说明 |
 | :--- | :--- | :--- | :--- |
 | 实时行情 | `get_real_time_record` | **结构化数值**（价格/涨跌幅/成交量） | 股票 / ETF / 指数最新价格，AI 可做精确数值引用 |
+| A 股分钟行情 | `get_a_share_realtime_1m_price`、`get_a_share_history_1m_price` | **结构化分钟 K 线** | 最新分钟行情明确市场状态和数据延迟；历史行情固定返回每个标的最近 2 个交易日完整序列，支持批量标的 |
 | 市场热点与大盘 | `get_hot_report`、`get_real_time_market_summary`、`get_market_analysis`、`get_sector_radar`、`sector_deep_dive` | **结构化指标 + 文本解读** | 热点板块、大盘走势、板块深挖、盘前盘中盘后概览 |
 | 宏观研究 | `get_macro_analysis` | **结构化指标 + 文本解读** | 宏观数据、政策、利率、流动性对大类资产的影响 |
 | 个股多维分析 | `get_asset_overview`、`analyze_caidazi_capital_flow`、`analyze_caidazi_technical`、`analyze_caidazi_financial`、`analyze_caidazi_valuation`、`compare_assets` | **结构化指标 + 文本解读** | 资金面 / 技术面 / 财务 / 估值四维拆解与多标的比较 |

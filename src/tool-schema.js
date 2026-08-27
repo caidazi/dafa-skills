@@ -159,6 +159,14 @@ function isNoParameterName(value) {
 function typeToSchema(type) {
   const normalized = type.toLowerCase().replace(/\s+/g, "");
 
+  if (/^(.+)\[\]$/.test(normalized)) {
+    const itemType = normalized.match(/^(.+)\[\]$/)[1];
+    return {
+      type: "array",
+      items: typeToSchema(itemType),
+    };
+  }
+
   if (/^array\[(.+)\]$/.test(normalized)) {
     const itemType = normalized.match(/^array\[(.+)\]$/)[1];
     return {
