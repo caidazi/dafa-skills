@@ -25,7 +25,7 @@ test("lists tools from the REST registry", async () => {
   assert.equal(requests[0].init.method, "GET");
 });
 
-test("returns the server-authorized external registry without client-side filtering", async () => {
+test("filters the external registry through the package allowlist", async () => {
   const registeredTools = [
     { name: "extract_assets" },
     { name: "get_a_share_realtime_1m_price" },
@@ -45,7 +45,12 @@ test("returns the server-authorized external registry without client-side filter
 
   const tools = await client.listTools();
 
-  assert.deepEqual(tools, registeredTools);
+  assert.deepEqual(tools, [
+    { name: "extract_assets" },
+    { name: "get_a_share_realtime_1m_price" },
+    { name: "get_a_share_history_1m_price" },
+    { name: "get_caidazi_positions_summary" },
+  ]);
 });
 
 test("calls tools through the REST bridge with bearer auth", async () => {
@@ -173,23 +178,19 @@ test("sends normalized compare_assets aliases to the backend", async () => {
   });
 });
 
-test("forwards registry tool calls and relies on backend authorization", async () => {
-  const requests = [];
+test("rejects calls outside the package allowlist", async () => {
   const client = new CaidaziRestClient({
     baseUrl: "http://example.test",
     apiKey: "test_api_key",
-    fetchImpl: async (url, init) => {
-      requests.push({ url, init });
-      return jsonResponse({ success: true, result: { records: [] } });
+    fetchImpl: async () => {
+      throw new Error("should not reach backend");
     },
   });
 
-  await client.callTool("get_us_kline", { symbol: "AAPL" });
-
-  assert.deepEqual(JSON.parse(requests[0].init.body), {
-    tool_name: "get_us_kline",
-    parameters: { symbol: "AAPL" },
-  });
+  await assert.rejects(
+    () => client.callTool("get_us_kline", { symbol: "AAPL" }),
+    /not exposed by @caidazi\/mcp/,
+  );
 });
 
 test("redacts API keys from surfaced errors", async () => {

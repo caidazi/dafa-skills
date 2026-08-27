@@ -1,3 +1,5 @@
+import { isAllowedTool } from "./allowed-tools.js";
+
 const DEFAULT_REGISTRY_PATH = "/api/tools/registered?external=true";
 const DEFAULT_CALL_PATH = "/api/tools/call";
 
@@ -38,10 +40,14 @@ export class CaidaziRestClient {
       throw new Error("Tool registry response did not include a tools array");
     }
 
-    return body.tools;
+    return body.tools.filter((tool) => isAllowedTool(tool.name));
   }
 
   async callTool(toolName, parameters = {}) {
+    if (!isAllowedTool(toolName)) {
+      throw new Error(`Tool ${toolName} is not exposed by @caidazi/mcp`);
+    }
+
     const normalizedParameters = normalizeToolParameters(toolName, parameters);
     const body = await this.request(this.callPath, {
       method: "POST",
